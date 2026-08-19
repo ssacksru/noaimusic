@@ -69,16 +69,20 @@ function parseInitialData(html) {
   } catch (e) { return null; }
 }
 
-// 시청 페이지에서 유튜브가 붙인 배지 라벨을 꺼낸다 (AI 공시면 ["AI"])
+// 시청 페이지에서 유튜브가 붙인 배지 라벨을 꺼낸다 (AI 공시면 ["AI"]).
+// 페이지를 읽지 못했으면 null — "배지 없음"([])과 반드시 구분해야 한다.
+// 그러지 않으면 네트워크 실패가 곧 "AI 아님" 으로 굳어버린다.
 function watchBadgeLabels(html) {
   const d = parseInitialData(html);
+  if (!d) return null;
   try {
     const contents = d.contents.twoColumnWatchNextResults.results.results.contents || [];
     const pri = contents.find((x) => x.videoPrimaryInfoRenderer);
+    if (!pri) return null;
     return (pri.videoPrimaryInfoRenderer.badges || [])
       .map((b) => b.metadataBadgeRenderer && b.metadataBadgeRenderer.label)
       .filter(Boolean);
-  } catch (e) { return []; }
+  } catch (e) { return null; }
 }
 
 async function getText(url) {
@@ -94,7 +98,8 @@ async function profileChannel(channelId, sampleVideoId) {
   // HTML 전체 문자열 매칭은 쓰지 않는다 — 사이드바 추천에 AI 영상이 섞이면
   // 예능·스포츠 채널까지 AI로 판정되는 것을 실측으로 확인했다(2026-08-19).
   // AI 채널은 사실상 전 영상에 라벨이 붙으므로(실측 3/3) 표본 1편이면 충분하다.
-  let verdict = 'ok';
+  // null = 판정 불가. 캐시하지 않고 다음 기회에 다시 본다.
+  let verdict = null;
   try {
     let ids = sampleVideoId ? [sampleVideoId] : [];
     if (!ids.length) {
@@ -103,15 +108,19 @@ async function profileChannel(channelId, sampleVideoId) {
         .map((x) => x.slice(11, -1)))].slice(0, 2);
     }
     for (const id of ids) {
-      const html = await getText(`https://www.youtube.com/watch?v=${id}`);
-      if (watchBadgeLabels(html).some((l) => /^AI$/i.test(l))) { verdict = 'ai'; break; }
+      const labels = watchBadgeLabels(await getText(`https://www.youtube.com/watch?v=${id}`));
+      if (!labels) continue;                       // 못 읽은 페이지는 근거가 아니다
+      if (labels.some((l) => /^AI$/i.test(l))) { verdict = 'ai'; break; }
+      verdict = 'ok';                              // 확인했고 공시가 없었다
     }
   } catch (e) {
-    verdict = 'ok'; // 실패 시 무죄 추정
+    verdict = null; // 네트워크 실패를 무죄로 굳히지 않는다
   }
 
-  cache.profiles[channelId] = verdict;
-  await chrome.storage.local.set({ profiles: cache.profiles });
+  if (verdict) {
+    cache.profiles[channelId] = verdict;
+    await chrome.storage.local.set({ profiles: cache.profiles });
+  }
   return verdict;
 }
 
