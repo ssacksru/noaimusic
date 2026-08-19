@@ -72,7 +72,7 @@ test('filterTree: 응답 JSON에서 차단 항목 제거·보존', () => {
       ],
     },
   };
-  const removed = H.filterTree(data, L);
+  const { removed } = H.filterTree(data, L);
   assert.equal(removed.length, 3);
   assert.equal(data.contents.results.length, 2);
   assert.equal(data.contents.results[0].videoRenderer.videoId, 'bbb');
@@ -89,7 +89,7 @@ test('filterTree: lockupViewModel (신형 카드)', () => {
       },
     }],
   };
-  const removed = H.filterTree(data, L);
+  const { removed } = H.filterTree(data, L);
   assert.equal(removed.length, 1);
   assert.equal(data.items.length, 0);
 });

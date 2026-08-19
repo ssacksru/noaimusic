@@ -5,11 +5,12 @@ let tab = 'blocked';
 function today() { return new Date().toISOString().slice(0, 10); }
 
 async function render() {
-  const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true });
+  const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true, autoSkip: true });
   const local = await chrome.storage.local.get({ stats: { day: today(), count: 0, total: 0 }, recent: [] });
 
   $('toggle').checked = sync.enabled;
   $('useSeed').checked = sync.useSeed;
+  $('autoSkip').checked = sync.autoSkip;
   $('dot').classList.toggle('off', !sync.enabled);
 
   const stats = local.stats.day === today() ? local.stats : { count: 0, total: local.stats.total };
@@ -83,6 +84,7 @@ async function render() {
 
 $('toggle').onchange = (e) => chrome.storage.sync.set({ enabled: e.target.checked }).then(render);
 $('useSeed').onchange = (e) => chrome.storage.sync.set({ useSeed: e.target.checked });
+$('autoSkip').onchange = (e) => chrome.storage.sync.set({ autoSkip: e.target.checked });
 for (const b of document.querySelectorAll('.tab')) {
   b.onclick = () => {
     tab = b.dataset.tab;

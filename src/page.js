@@ -16,29 +16,64 @@
     lists = e.data.lists || lists;
   });
 
-  function report(removed) {
-    if (!removed.length) return;
-    try {
-      window.postMessage({
-        type: 'NAM_REMOVED',
-        items: removed.map((m) => ({
-          videoId: m.videoId, title: m.title, channel: m.channel,
-          channelId: m.channelId, reason: m.reason,
-        })),
-      }, window.location.origin);
-    } catch (e) { /* 통계 실패는 무시 */ }
+  function post(type, payload) {
+    try { window.postMessage(Object.assign({ type }, payload), window.location.origin); }
+    catch (e) { /* 통계·학습 신호 실패는 무시 */ }
   }
 
   function filter(data) {
     if (!enabled || !data || typeof data !== 'object') return data;
     try {
-      const removed = H.filterTree(data, lists);
+      const { removed, candidates } = H.filterTree(data, lists);
       if (removed.length) {
         fixAutoplay(data, removed);
-        report(removed);
+        post('NAM_REMOVED', {
+          items: removed.map((m) => ({
+            videoId: m.videoId, title: m.title, channel: m.channel,
+            channelId: m.channelId, reason: m.reason,
+          })),
+        });
       }
+      // 음악인데 AI 신호가 없는 처음 보는 채널 — 프로파일링 후보로 넘긴다
+      if (candidates.length) {
+        const seen = new Set();
+        const uniq = candidates.filter((c) => !seen.has(c.channelId) && seen.add(c.channelId));
+        post('NAM_CANDIDATES', { items: uniq.slice(0, 20) });
+      }
+      reportWatch(data);
     } catch (e) { /* 원본 유지 */ }
     return data;
+  }
+
+  // 현재 시청 중인 영상의 채널 ID와 유튜브 자체 AI 공시 배지를 데이터에서 직접 읽어 알린다.
+  // DOM 은 채널을 /@handle 로만 링크해서 채널 ID를 얻을 수 없다(2026-08-19 실측).
+  function reportWatch(data) {
+    try {
+      const wn = data.contents && data.contents.twoColumnWatchNextResults;
+      if (!wn) return;
+      const contents = (wn.results && wn.results.results && wn.results.results.contents) || [];
+      const pri = (contents.find((x) => x.videoPrimaryInfoRenderer) || {}).videoPrimaryInfoRenderer;
+      const sec = (contents.find((x) => x.videoSecondaryInfoRenderer) || {}).videoSecondaryInfoRenderer;
+      if (!pri && !sec) return;
+      const labels = ((pri && pri.badges) || [])
+        .map((b) => b.metadataBadgeRenderer && b.metadataBadgeRenderer.label).filter(Boolean);
+      const owner = sec && sec.owner && sec.owner.videoOwnerRenderer;
+      const be = owner && owner.navigationEndpoint && owner.navigationEndpoint.browseEndpoint;
+      const runs = (pri && pri.title && pri.title.runs) || [];
+      // 다음 재생 후보는 이미 필터를 거친 값이라 그대로 건너뛸 대상으로 쓸 수 있다
+      const sets = (wn.autoplay && wn.autoplay.autoplay && wn.autoplay.autoplay.sets) || [];
+      const apId = (sets[0] && sets[0].autoplayVideo && sets[0].autoplayVideo.watchEndpoint &&
+        sets[0].autoplayVideo.watchEndpoint.videoId) || '';
+      post('NAM_WATCH', {
+        nextVideoId: apId || H.firstVideoId(wn.secondaryResults) || '',
+        videoId: (data.currentVideoEndpoint && data.currentVideoEndpoint.watchEndpoint &&
+          data.currentVideoEndpoint.watchEndpoint.videoId) || '',
+        channelId: (be && be.browseId) || '',
+        channel: (owner && owner.title && owner.title.runs && owner.title.runs[0] && owner.title.runs[0].text) || '',
+        title: runs.map((r) => r.text || '').join(''),
+        aiLabeled: labels.some((l) => /^AI$/i.test(l)),
+      });
+    } catch (e) { /* 시청 메타 추출 실패는 무시 */ }
   }
 
   // 자동재생 대상이 걸러진 영상이면 살아남은 첫 추천 영상으로 바꿔치기 —

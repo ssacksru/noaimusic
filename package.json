@@ -4,6 +4,7 @@
   "description": "유튜브 추천·검색·자동재생에서 AI 생성 음악 플레이리스트를 걸러내는 크롬 익스텐션",
   "private": true,
   "scripts": {
-    "test": "node --test \"test/*.test.js\""
+    "sync": "cp src/heuristics.js src/heuristics.iso.js",
+    "test": "npm run sync --silent && node --test \"test/*.test.js\""
   }
 }

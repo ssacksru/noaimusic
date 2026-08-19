@@ -3,6 +3,7 @@
   'use strict';
   const H = window.NAM_HEURISTICS;
   let enabled = true;
+  let autoSkip = true;
   let lists = { allowed: {}, blocked: {}, seed: {} };
   let profiles = {};   // channelId -> 'ai' | 'ok'
   const pending = new Set();
@@ -17,11 +18,18 @@
   }
 
   async function loadState() {
-    const seedResp = await fetch(chrome.runtime.getURL('data/seed-channels.json'));
-    const seed = (await seedResp.json()).channels || {};
-    const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true });
+    // 시드 두 갈래: Soul Over AI 스냅샷(영어권 중심) + 유튜브 AI 라벨로 직접 수집한 한국 채널
+    const seed = {};
+    for (const f of ['data/seed-channels.json', 'data/ai-channels.json']) {
+      try {
+        const r = await fetch(chrome.runtime.getURL(f));
+        Object.assign(seed, (await r.json()).channels || {});
+      } catch (e) { /* 한쪽이 없어도 나머지로 동작 */ }
+    }
+    const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true, autoSkip: true });
     const local = await chrome.storage.local.get({ profiles: {} });
     enabled = sync.enabled;
+    autoSkip = sync.autoSkip;
     profiles = local.profiles;
     lists = { allowed: sync.allowed, blocked: sync.blocked, seed: sync.useSeed ? seed : {} };
     pushLists();
@@ -30,6 +38,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync') {
       if (changes.enabled) enabled = changes.enabled.newValue;
+      if (changes.autoSkip) autoSkip = changes.autoSkip.newValue;
       if (changes.blocked) lists.blocked = changes.blocked.newValue;
       if (changes.allowed) lists.allowed = changes.allowed.newValue;
       pushLists();
@@ -37,10 +46,19 @@
     }
   });
 
-  // ── page.js 가 걸러낸 항목 통계 ────────────────────────────────
+  // ── page.js 신호 수신: 통계 + 프로파일링 후보 ──────────────────
   window.addEventListener('message', (e) => {
-    if (e.source !== window || !e.data || e.data.type !== 'NAM_REMOVED') return;
-    chrome.runtime.sendMessage({ type: 'NAM_STATS', items: e.data.items }).catch(() => {});
+    if (e.source !== window || !e.data) return;
+    if (e.data.type === 'NAM_REMOVED') {
+      chrome.runtime.sendMessage({ type: 'NAM_STATS', items: e.data.items }).catch(() => {});
+    } else if (e.data.type === 'NAM_CANDIDATES') {
+      for (const c of e.data.items) {
+        if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId);
+      }
+    } else if (e.data.type === 'NAM_WATCH') {
+      watchMeta = e.data;
+      schedule();
+    }
   });
 
   // ── DOM 안전망: 데이터 필터가 놓친 카드 숨김 + 프로파일링 후보 수집 ──
@@ -109,10 +127,10 @@
   }
 
   // ── 채널 프로파일링: 음악인데 AI 신호가 애매한 신규 채널만, 채널당 1회 ──
-  function queueProfile(channelId) {
+  function queueProfile(channelId, videoId) {
     if (pending.has(channelId) || pending.size > 3) return;
     pending.add(channelId);
-    chrome.runtime.sendMessage({ type: 'NAM_PROFILE', channelId })
+    chrome.runtime.sendMessage({ type: 'NAM_PROFILE', channelId, videoId })
       .then((res) => {
         pending.delete(channelId);
         if (!res || !res.verdict) return;
@@ -122,19 +140,88 @@
       .catch(() => pending.delete(channelId));
   }
 
-  // ── 직접 링크로 차단 채널 영상에 들어온 경우: 재생을 끊지 않고 배너만 ──
+  // 유튜브가 제목 아래에 직접 붙이는 AI 공시 배지 ("AI: AI로 생성된 콘텐츠")
+  function youtubeAiBadge() {
+    for (const el of document.querySelectorAll('#above-the-fold yt-metadata-badge-renderer, #title yt-metadata-badge-renderer')) {
+      const aria = el.getAttribute('aria-label') || (el.querySelector('[aria-label]') || {}).ariaLabel || '';
+      if (/AI로 생성된|AI-generated|합성된 콘텐츠/i.test(aria)) return true;
+      if (/^AI$/i.test((el.textContent || '').trim())) return true;
+    }
+    return false;
+  }
+
+  // 재생이 시작된 뒤에야 AI로 판명된 경우 — 즉시 다음 정상 영상으로 넘긴다.
+  // 사이드바·자동재생 큐는 이미 걸러진 상태이므로 "다음" 이 곧 정상 영상이다.
+  const skipped = new Set();
+  let skipStreak = 0;
+  const SKIP_LIMIT = 10;   // 연속으로 AI만 나올 때 무한 이동 방지
+  function skipToNext(meta, wm) {
+    const vid = new URLSearchParams(location.search).get('v');
+    if (!vid || skipped.has(vid) || skipStreak >= SKIP_LIMIT) return false;
+
+    // 이동할 곳을 먼저 확보한다. 없으면 아무것도 소비하지 않고 다음 틱에 다시 시도한다
+    // (문서 시작 시점엔 플레이어 버튼·사이드바가 아직 없다).
+    const btn = document.querySelector('.ytp-next-button');
+    const useBtn = btn && !btn.hasAttribute('disabled') && btn.offsetParent !== null;
+    const nextId = wm && wm.nextVideoId && wm.nextVideoId !== vid ? wm.nextVideoId : '';
+    const link = document.querySelector('#secondary a.ytLockupMetadataViewModelTitle[href*="/watch"]');
+    if (!useBtn && !nextId && !link) return false;
+
+    skipped.add(vid);
+    skipStreak++;
+    try { const v = document.querySelector('video'); if (v) { v.pause(); v.muted = true; } } catch (e) {}
+    chrome.runtime.sendMessage({
+      type: 'NAM_STATS',
+      items: [{ videoId: vid, title: meta.title, channel: meta.channel, channelId: meta.channelId, reason: 'skipped:youtube-ai-label' }],
+    }).catch(() => {});
+
+    if (useBtn) { btn.click(); return true; }
+    if (nextId) { location.href = '/watch?v=' + nextId; return true; }
+    location.href = link.getAttribute('href');
+    return true;
+  }
+
+  // page.js 가 데이터에서 읽어 보낸 현재 시청 영상 정보 (DOM 보다 정확)
+  let watchMeta = null;
+
+  // ── 시청 페이지: AI 판정 시 건너뛰거나 배너 표시 ─────────────────
   function watchBanner() {
     if (!enabled || location.pathname !== '/watch') return;
-    const chanEl = document.querySelector('ytd-video-owner-renderer a[href*="/channel/"], #owner a[href*="/channel/"]');
-    const titleEl = document.querySelector('h1.ytd-watch-metadata yt-formatted-string, h1 .style-scope.ytd-watch-metadata');
-    if (!chanEl || !titleEl) return;
-    const m = chanEl.getAttribute('href').match(/\/channel\/(UC[\w-]+)/);
+    const curV = new URLSearchParams(location.search).get('v');
+    const wm = watchMeta && (!watchMeta.videoId || !curV || watchMeta.videoId === curV) ? watchMeta : null;
+
+    const chanEl = document.querySelector('ytd-video-owner-renderer a[href], #owner a[href]');
+    const titleEl = document.querySelector('h1.ytd-watch-metadata');
+    if (!wm && (!chanEl || !titleEl)) return;
+    const m = chanEl && (chanEl.getAttribute('href') || '').match(/\/channel\/(UC[\w-]+)/);
     const meta = {
-      title: titleEl.textContent.trim(), channel: chanEl.textContent.trim(),
-      channelId: m ? m[1] : '', durationSec: 9999, isPlaylist: false,
+      title: (wm && wm.title) || (titleEl ? titleEl.textContent.trim() : ''),
+      channel: (wm && wm.channel) || (chanEl ? chanEl.textContent.trim() : ''),
+      channelId: (wm && wm.channelId) || (m ? m[1] : ''),
+      durationSec: 9999, isPlaylist: false,
     };
+    if (!meta.title) return;
     const merged = { ...lists, blocked: { ...lists.blocked, ...aiProfiles() } };
-    const v = H.evaluate(meta, merged);
+    let v = H.evaluate(meta, merged);
+
+    // 유튜브가 직접 AI라고 표시했으면 그 채널을 확정 처리한다 —
+    // 이후 이 채널은 피드·검색·자동재생에서 전부 사라진다.
+    const labeled = v.reason !== 'allowlist' && ((wm && wm.aiLabeled) || youtubeAiBadge());
+    if (labeled) {
+      if (meta.channelId && profiles[meta.channelId] !== 'ai') {
+        profiles[meta.channelId] = 'ai';
+        chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: meta.channelId, verdict: 'ai' }).catch(() => {});
+        pushLists();
+        sweepDom();
+      }
+      v = { action: 'block', reason: 'youtube-ai-label' };
+    }
+
+    // 재생이 시작된 뒤 AI로 판명되면 즉시 다음 정상 영상으로 넘어간다.
+    // (검색에서 눌러 들어온 경우도 포함 — 누르는 건 못 막아도 듣게 두진 않는다)
+    if (v.action === 'block' && autoSkip && labeled && skipToNext(meta, wm)) return;
+    if (!labeled) skipStreak = 0;   // 정상 영상에 도달하면 연쇄 카운터 초기화
+
     const old = document.getElementById('nam-banner');
     if (v.action !== 'block') { if (old) old.remove(); return; }
     if (old) return;
@@ -165,7 +252,9 @@
   function schedule() {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; try { sweepDom(); watchBanner(); } catch (e) {} });
+    requestAnimationFrame(() => { scheduled = false;
+      try { sweepDom(); } catch (e) {}
+      try { watchBanner(); } catch (e) {} });
   }
 
   loadState().then(() => {

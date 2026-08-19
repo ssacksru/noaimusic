@@ -38,7 +38,7 @@ test('실측: 1시간 넘는 예능 영상도 음악이 아니면 통과', () =>
 
 test('실측 카드 전체를 filterTree 에 넣어도 정상 영상은 하나도 안 사라진다', () => {
   const data = { contents: cards.map((c) => JSON.parse(JSON.stringify(c))) };
-  const removed = H.filterTree(data, L);
+  const { removed } = H.filterTree(data, L);
   assert.equal(removed.length, 0, '실제 홈 피드의 일반 영상은 전부 보존되어야 한다');
   assert.equal(data.contents.length, cards.length);
 });
@@ -49,7 +49,7 @@ test('실측 구조에 AI 음악 카드를 넣으면 그것만 제거된다', ()
   md.title.content = 'AI가 만든 감성 발라드 노래모음 | 광고없는 플레이리스트';
   md.metadata.contentMetadataViewModel.metadataRows[0].metadataParts[0].text.content = 'AI 뮤직랩';
   const data = { contents: [...cards.map((c) => JSON.parse(JSON.stringify(c))), aiCard] };
-  const removed = H.filterTree(data, L);
+  const { removed } = H.filterTree(data, L);
   assert.equal(removed.length, 1);
   assert.equal(data.contents.length, cards.length);
   assert.equal(removed[0].channelId, 'UCsebzRfMhwYfjeBIxNX1brg');
