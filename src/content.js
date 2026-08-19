@@ -53,7 +53,7 @@
       chrome.runtime.sendMessage({ type: 'NAM_STATS', items: e.data.items }).catch(() => {});
     } else if (e.data.type === 'NAM_CANDIDATES') {
       for (const c of e.data.items) {
-        if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId);
+        if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId, c.channel);
       }
     } else if (e.data.type === 'NAM_WATCH') {
       watchMeta = e.data;
@@ -119,25 +119,44 @@
           chrome.runtime.sendMessage({ type: 'NAM_STATS', items: [{ ...meta, reason: v.reason }] }).catch(() => {});
         } else if (v.reason === 'music-clean' && meta.channelId && !(meta.channelId in profiles)) {
           el.dataset.namState = 'candidate';
-          queueProfile(meta.channelId);
+          queueProfile(meta.channelId, meta.videoId, meta.channel);
         }
       } catch (e) { /* 카드 하나 실패는 무시 */ }
     }
     return hidden;
   }
 
-  // ── 채널 프로파일링: 음악인데 AI 신호가 애매한 신규 채널만, 채널당 1회 ──
-  function queueProfile(channelId, videoId) {
-    if (pending.has(channelId) || pending.size > 3) return;
+  // ── 채널 프로파일링: 음악인데 AI 신호가 없는 신규 채널만, 채널당 1회 ──
+  // 후보는 한꺼번에 몰려오므로 큐에 쌓고 하나씩 처리한다.
+  // (예전엔 동시 한도를 넘은 후보를 그냥 버려서 대부분이 학습되지 않았다)
+  const queue = [];
+  let running = 0;
+  const MAX_CONCURRENT = 2;
+
+  function queueProfile(channelId, videoId, channel) {
+    if (!channelId || pending.has(channelId)) return;
     pending.add(channelId);
-    chrome.runtime.sendMessage({ type: 'NAM_PROFILE', channelId, videoId })
-      .then((res) => {
-        pending.delete(channelId);
-        if (!res || !res.verdict) return;
-        profiles[channelId] = res.verdict;
-        if (res.verdict === 'ai') { pushLists(); sweepDom(); }
-      })
-      .catch(() => pending.delete(channelId));
+    queue.push({ channelId, videoId, channel });
+    pump();
+  }
+
+  function pump() {
+    while (running < MAX_CONCURRENT && queue.length) {
+      const job = queue.shift();
+      running++;
+      chrome.runtime.sendMessage({ type: 'NAM_PROFILE', ...job })
+        .then((res) => {
+          running--;
+          if (res && res.verdict) {
+            profiles[job.channelId] = res.verdict;
+            if (res.verdict === 'ai') { pushLists(); sweepDom(); }
+          } else {
+            pending.delete(job.channelId);   // 판정 불가 — 나중에 다시 볼 수 있게 푼다
+          }
+          pump();
+        })
+        .catch(() => { running--; pending.delete(job.channelId); pump(); });
+    }
   }
 
   // 유튜브가 제목 아래에 직접 붙이는 AI 공시 배지 ("AI: AI로 생성된 콘텐츠")
@@ -210,7 +229,7 @@
     if (labeled) {
       if (meta.channelId && profiles[meta.channelId] !== 'ai') {
         profiles[meta.channelId] = 'ai';
-        chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: meta.channelId, verdict: 'ai' }).catch(() => {});
+        chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: meta.channelId, verdict: 'ai', channel: meta.channel }).catch(() => {});
         pushLists();
         sweepDom();
       }

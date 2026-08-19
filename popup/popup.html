@@ -23,23 +23,25 @@
   </section>
 
   <section class="list">
-    <h2>방금 걸러낸 항목</h2>
+    <h2>방금 걸러낸 항목 <span class="hint" id="recent-hint"></span></h2>
     <ul id="recent"></ul>
     <p class="empty" id="empty">아직 걸러낸 항목이 없습니다.</p>
   </section>
 
   <section class="lists">
-    <h2>내 채널 목록</h2>
+    <h2>채널 관리</h2>
     <div class="tabs">
-      <button class="tab active" data-tab="blocked">차단 <span id="n-blocked">0</span></button>
+      <button class="tab active" data-tab="learned">학습됨 <span id="n-learned">0</span></button>
+      <button class="tab" data-tab="blocked">직접 차단 <span id="n-blocked">0</span></button>
       <button class="tab" data-tab="allowed">허용 <span id="n-allowed">0</span></button>
     </div>
+    <p class="tabnote" id="tabnote"></p>
     <ul id="channels"></ul>
   </section>
 
   <footer>
     <label class="seed"><input type="checkbox" id="autoSkip" checked> 재생 중 AI로 판별되면 바로 다음 곡으로</label>
-    <label class="seed"><input type="checkbox" id="useSeed" checked> 알려진 AI 채널 목록 사용 (1,366개)</label>
+    <label class="seed"><input type="checkbox" id="useSeed" checked> 알려진 AI 채널 목록 사용 <span id="seed-count"></span></label>
     <span class="credit">데이터: 유튜브 AI 공시 + <a href="https://souloverai.com" target="_blank" rel="noreferrer">Soul Over AI</a> (CC BY 4.0)</span>
   </footer>
 
