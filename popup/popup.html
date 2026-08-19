@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="dot" id="dot"></span>
+      <strong>NoAI Music</strong>
+    </div>
+    <label class="switch">
+      <input type="checkbox" id="toggle" checked>
+      <span class="slider"></span>
+    </label>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><b id="stat-page">0</b><span>이 페이지</span></div>
+    <div class="stat"><b id="stat-today">0</b><span>오늘</span></div>
+    <div class="stat"><b id="stat-total">0</b><span>누적</span></div>
+  </section>
+
+  <section class="list">
+    <h2>방금 걸러낸 항목</h2>
+    <ul id="recent"></ul>
+    <p class="empty" id="empty">아직 걸러낸 항목이 없습니다.</p>
+  </section>
+
+  <section class="lists">
+    <h2>내 채널 목록</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="blocked">차단 <span id="n-blocked">0</span></button>
+      <button class="tab" data-tab="allowed">허용 <span id="n-allowed">0</span></button>
+    </div>
+    <ul id="channels"></ul>
+  </section>
+
+  <footer>
+    <label class="seed"><input type="checkbox" id="useSeed" checked> 알려진 AI 채널 목록 사용 (1,277개)</label>
+    <span class="credit">데이터: <a href="https://souloverai.com" target="_blank" rel="noreferrer">Soul Over AI</a> (CC BY 4.0)</span>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

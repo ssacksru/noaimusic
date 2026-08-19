@@ -1,0 +1,9 @@
+{
+  "name": "noaimusic",
+  "version": "0.1.0",
+  "description": "유튜브 추천·검색·자동재생에서 AI 생성 음악 플레이리스트를 걸러내는 크롬 익스텐션",
+  "private": true,
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  }
+}
