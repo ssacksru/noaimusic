@@ -195,3 +195,11 @@ test('보안 회귀 가드', () => {
   const c = read('src/content.js');
   assert.match(c, /\^UC\[\\w-\]\{22\}\$/, '채널 ID 형식 검증이 사라졌다');
 });
+
+test('시크릿 탭의 시청 내용이 기록에 남지 않는다', () => {
+  // 시크릿에서 걸러낸 영상 제목이 팝업 기록에 남으면 시크릿의 기대를 깬다 (2026-08-20 실측)
+  const b = read('src/background.js');
+  assert.match(b, /sender\.tab && sender\.tab\.incognito/, '시크릿 탭 구분이 없다');
+  assert.match(b, /fresh\.map\(\(\) => \(\{\}\)\)/, '시크릿 항목의 내용을 비우지 않는다');
+  assert.match(b, /items\.filter\(\(i\) => i\.title \|\| i\.videoId\)/, '빈 항목이 목록에 들어간다');
+});

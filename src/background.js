@@ -17,7 +17,8 @@ async function bumpStats(items) {
   stats.total += items.length;
 
   // 목록은 "무엇을 걸렀나" — 같은 영상은 한 줄로 합치고 최신 시각으로 올린다.
-  const fresh = items.map((i) => ({
+  // (시크릿 탭 발 항목은 빈 객체로 와서 카운터에만 반영되고 목록에는 안 남는다)
+  const fresh = items.filter((i) => i.title || i.videoId).map((i) => ({
     videoId: i.videoId || '', title: i.title, channel: i.channel,
     channelId: i.channelId, reason: i.reason, at: Date.now(),
   }));
@@ -58,7 +59,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       }
       setBadge(tabId);
     }
-    if (fresh.length) bumpStats(fresh);
+    // 시크릿 탭에서는 "무엇을 걸렀는지"(제목·채널)를 기록에 남기지 않는다 —
+    // 시크릿의 기대에 맞게 개수만 센다. 필터링 자체는 동일하게 동작한다.
+    const incog = !!(sender.tab && sender.tab.incognito);
+    if (fresh.length) bumpStats(incog ? fresh.map(() => ({})) : fresh);
     return false;
   }
   if (msg.type === 'NAM_MARK') {
