@@ -211,3 +211,13 @@ test('설치 직후 열려 있던 유튜브 탭이 자동으로 살아난다', (
   assert.match(b, /reason !== 'install'/, "첫 설치 때만 새로고침해야 한다 (업데이트 때 재생을 끊으면 안 된다)");
   assert.match(b, /tabs\.query\(\{ url: 'https:\/\/www\.youtube\.com\/\*' \}\)/, '유튜브 탭만 대상이어야 한다');
 });
+
+test('직접 링크로 연 음악 채널도 프로파일링된다', () => {
+  // 피드에 안 뜨고 링크로만 도달한 채널은 학습 기회가 없었다 (2026-08-20 실사용 제보:
+  // 조회수 100회·해시태그 12개 피아노 채널을 직접 열람 — 추정 규칙 대상인데 미학습)
+  const c = read('src/content.js');
+  assert.match(c, /watchMeta = e\.data;[\s\S]{0,700}music-clean[\s\S]{0,200}queueProfile\(e\.data\.channelId/,
+    '시청 중인 채널의 프로파일링 배선이 사라졌다');
+  const p = read('src/page.js');
+  assert.match(p, /views,\s*\n\s*nextVideoId/, 'NAM_WATCH 에 조회수가 실리지 않는다 — 추정 규칙이 못 돈다');
+});

@@ -95,6 +95,16 @@
       if (e.data.videoId && cur && e.data.videoId !== cur) return;
       if (e.data.channelId && !/^UC[\w-]{22}$/.test(e.data.channelId)) return;
       watchMeta = e.data;
+      // 직접 링크로 온 음악 채널도 확인 대상이다 — 피드에 안 떠도 여기서 학습된다
+      // (실사용 사례 2026-08-20: 조회수 100회·해시태그 12개짜리 피아노 채널을 직접 열람)
+      if (e.data.channelId && !(e.data.channelId in profiles)) {
+        const v = H.evaluate({ title: e.data.title || '', channel: e.data.channel || '',
+          channelId: e.data.channelId, durationSec: 9999, isPlaylist: false },
+          { allowed: lists.allowed, blocked: {}, seed: {} });
+        if (v.reason === 'music-clean') {
+          queueProfile(e.data.channelId, e.data.videoId, e.data.channel, e.data.views);
+        }
+      }
       schedule();
     }
   });

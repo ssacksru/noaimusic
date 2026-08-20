@@ -71,7 +71,15 @@
       const sets = (wn.autoplay && wn.autoplay.autoplay && wn.autoplay.autoplay.sets) || [];
       const apId = (sets[0] && sets[0].autoplayVideo && sets[0].autoplayVideo.watchEndpoint &&
         sets[0].autoplayVideo.watchEndpoint.videoId) || '';
+      // 조회수 — 시청 중인 채널을 프로파일링할 때 추정 규칙에 쓴다
+      let views = null;
+      try {
+        const vc = pri.viewCount.videoViewCountRenderer;
+        views = H.parseViews((vc.viewCount && (vc.viewCount.simpleText ||
+          (vc.viewCount.runs || []).map((r) => r.text).join(''))) || '');
+      } catch (e) { /* 없으면 null */ }
       post('NAM_WATCH', {
+        views,
         nextVideoId: apId || H.firstVideoId(wn.secondaryResults) || '',
         videoId: (data.currentVideoEndpoint && data.currentVideoEndpoint.watchEndpoint &&
           data.currentVideoEndpoint.watchEndpoint.videoId) || '',
