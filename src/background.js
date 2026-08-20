@@ -61,11 +61,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (fresh.length) bumpStats(fresh);
     return false;
   }
-  if (msg.type === 'NAM_PROFILE') {
-    profileChannel(msg.channelId, msg.videoId, msg.channel).then((verdict) => sendResponse({ verdict }))
-      .catch(() => sendResponse({ verdict: null }));
-    return true; // async
-  }
   if (msg.type === 'NAM_MARK') {
     markChannel(msg.channelId, msg.verdict, msg.channel).then((verdict) => sendResponse({ verdict }))
       .catch(() => sendResponse({ verdict: null }));
@@ -83,67 +78,9 @@ chrome.tabs.onUpdated.addListener((tabId, info) => {
   }
 });
 
-// ── 채널 프로파일링 ────────────────────────────────────────────────
-// 결정적 신호는 유튜브 자체 AI 공시 배지다(시청 페이지의 videoPrimaryInfoRenderer.badges).
-// 채널 목록 페이지엔 이 배지가 없으므로, 대표 영상 몇 개의 시청 페이지를 받아 확인한다.
-// 판정은 채널 단위로 영구 캐시 — 채널당 1회 비용.
-function parseInitialData(html) {
-  try {
-    const m = html.match(/var ytInitialData\s*=\s*(\{.+?\});<\/script>/s);
-    return m ? JSON.parse(m[1]) : null;
-  } catch (e) { return null; }
-}
-
-// 시청 페이지에서 유튜브가 붙인 배지를 꺼낸다.
-// 페이지를 읽지 못했으면 null — "배지 없음"([])과 반드시 구분해야 한다.
-// 그러지 않으면 네트워크 실패가 곧 "AI 아님" 으로 굳어버린다.
-function watchBadges(html) {
-  const d = parseInitialData(html);
-  if (!d) return null;
-  try {
-    const contents = d.contents.twoColumnWatchNextResults.results.results.contents || [];
-    const pri = contents.find((x) => x.videoPrimaryInfoRenderer);
-    if (!pri) return null;
-    return (pri.videoPrimaryInfoRenderer.badges || [])
-      .map((b) => b.metadataBadgeRenderer)
-      .filter(Boolean);
-  } catch (e) { return null; }
-}
-
-// AI 공시 배지인가. 라벨은 언어마다 다르다(AI·IA·KI·ИИ·एआई·بالذكاء الاصطناعي).
-// 아이콘 종류는 모든 로케일에서 같고, 일반 영상은 이 자리에 배지가 아예 없다(실측 2026-08-20).
-function isAiBadge(b) {
-  return !!b && b.icon && b.icon.iconType === 'INFO' && b.style === 'BADGE_STYLE_TYPE_SIMPLE';
-}
-
-// 예전 이름 — 수집기와 테스트가 라벨 목록을 쓴다
-function watchBadgeLabels(html) {
-  const badges = watchBadges(html);
-  return badges === null ? null : badges.map((b) => b.label).filter(Boolean);
-}
-
-// 유튜브는 짧은 시간에 많이 요청하면 막는다(실측 2026-08-20: 3시간 청취 중 차단).
-// 막히면 판정이 전부 실패하고 학습이 멈추므로, 속도를 스스로 조절하고 물러선다.
-let blockedUntil = 0;
-let lastFetchAt = 0;
-const MIN_GAP_MS = 4000;      // 요청 사이 최소 간격
-const BACKOFF_MS = 10 * 60000; // 막혔다고 판단되면 쉬는 시간
-
-function throttled() { return Date.now() < blockedUntil; }
-
-async function getText(url) {
-  const wait = lastFetchAt + MIN_GAP_MS - Date.now();
-  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
-  lastFetchAt = Date.now();
-  try {
-    const r = await fetch(url, { credentials: 'omit' });
-    if (!r.ok) throw new Error('status ' + r.status);
-    return r.text();
-  } catch (e) {
-    blockedUntil = Date.now() + BACKOFF_MS;   // 한동안 쉰다
-    throw e;
-  }
-}
+// ── 학습 결과 저장 ────────────────────────────────────────────────
+// 시청 페이지 확인은 content script 가 한다(페이지 컨텍스트라야 쿠키가 실린다).
+// 서비스워커에서 요청하면 유튜브가 거부한다 — 실측 2026-08-20.
 
 // 학습한 채널은 이름도 함께 남긴다 — 팝업에서 사람이 알아볼 수 있어야 한다
 async function rememberName(channelId, name) {
@@ -152,42 +89,6 @@ async function rememberName(channelId, name) {
   if (profileNames[channelId] === name) return;
   profileNames[channelId] = name;
   await chrome.storage.local.set({ profileNames });
-}
-
-async function profileChannel(channelId, sampleVideoId, channelName) {
-  const cache = await chrome.storage.local.get({ profiles: {} });
-  if (cache.profiles[channelId]) return cache.profiles[channelId];
-  if (throttled()) return null;   // 막혀 있는 동안은 헛되이 시도하지 않는다
-
-  // 근거는 유튜브 자체 공시 배지 하나뿐이다.
-  // HTML 전체 문자열 매칭은 쓰지 않는다 — 사이드바 추천에 AI 영상이 섞이면
-  // 예능·스포츠 채널까지 AI로 판정되는 것을 실측으로 확인했다(2026-08-19).
-  // AI 채널은 사실상 전 영상에 라벨이 붙으므로(실측 3/3) 표본 1편이면 충분하다.
-  // null = 판정 불가. 캐시하지 않고 다음 기회에 다시 본다.
-  let verdict = null;
-  try {
-    let ids = sampleVideoId ? [sampleVideoId] : [];
-    if (!ids.length) {
-      const chanHtml = await getText(`https://www.youtube.com/channel/${channelId}/videos`);
-      ids = [...new Set((chanHtml.match(/"videoId":"[\w-]{11}"/g) || [])
-        .map((x) => x.slice(11, -1)))].slice(0, 2);
-    }
-    for (const id of ids) {
-      const badges = watchBadges(await getText(`https://www.youtube.com/watch?v=${id}`));
-      if (!badges) continue;                       // 못 읽은 페이지는 근거가 아니다
-      if (badges.some(isAiBadge)) { verdict = 'ai'; break; }
-      verdict = 'ok';                              // 확인했고 공시가 없었다
-    }
-  } catch (e) {
-    verdict = null; // 네트워크 실패를 무죄로 굳히지 않는다
-  }
-
-  if (verdict) {
-    cache.profiles[channelId] = verdict;
-    await chrome.storage.local.set({ profiles: cache.profiles });
-    if (verdict === 'ai') await rememberName(channelId, channelName);
-  }
-  return verdict;
 }
 
 // 시청 페이지에서 content script 가 배지를 직접 본 경우 — 즉시 채널을 AI로 확정한다

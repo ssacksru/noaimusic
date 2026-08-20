@@ -7,6 +7,7 @@
   let lists = { allowed: {}, blocked: {}, seed: {} };
   let profiles = {};   // channelId -> 'ai' | 'ok'
   let profileNames = {};
+  const videoChannel = {};   // videoId -> channelId (데이터 레이어가 알려준다)
 
   function pushLists() {
     const blocked = { ...lists.blocked, ...aiProfiles() };
@@ -67,7 +68,7 @@
     }
     if (!touched) return;
     pushLists();
-    if (enabled) sweepDom();
+    if (enabled) resweep();
   });
 
   // ── page.js 신호 수신: 통계 + 프로파일링 후보 ──────────────────
@@ -79,6 +80,8 @@
       for (const c of e.data.items) {
         if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId, c.channel);
       }
+    } else if (e.data.type === 'NAM_IDMAP') {
+      Object.assign(videoChannel, e.data.map);
     } else if (e.data.type === 'NAM_WATCH') {
       watchMeta = e.data;
       schedule();
@@ -119,10 +122,19 @@
       videoId,
       title: (titleEl && (titleEl.getAttribute('title') || titleEl.textContent) || '').trim(),
       channel: ((chanEl && chanEl.textContent) || (rowEl && rowEl.textContent) || '').trim(),
-      channelId: m ? m[1] : '',
+      channelId: (m && m[1]) || videoChannel[videoId] || '',
       durationSec,
       isPlaylist: /PLAYLIST|RADIO/i.test(el.tagName) || /^(RD|PL|OLAK)/.test(videoId),
     };
+  }
+
+  // 새로 학습하거나 목록이 바뀌면 이미 검사한 카드도 다시 판정해야 한다.
+  // 그러지 않으면 학습해도 화면에 그대로 남는다(실측 2026-08-20).
+  function resweep() {
+    for (const el of document.querySelectorAll('[data-nam-checked]')) {
+      if (el.dataset.namState !== 'hidden') delete el.dataset.namChecked;
+    }
+    sweepDom();
   }
 
   function sweepDom() {
@@ -151,44 +163,48 @@
     return hidden;
   }
 
-  // ── 채널 프로파일링: 음악인데 AI 신호가 없는 신규 채널을 백그라운드에서 확인 ──
-  // 어떤 이유로 한 건이 실패하거나 응답이 유실돼도 전체가 멈추면 안 된다.
-  // 그래서 "무엇을 아직 모르는가"를 매번 다시 계산해 채워 넣는 자가복구 구조로 둔다.
-  // (예전엔 실패한 후보가 큐에서 사라져 21개 중 2개만 검사되고 멈췄다 — 실측 2026-08-20)
-  const wanted = new Map();      // channelId -> {videoId, channel}  아직 판정 못 받은 것
+  // ── 채널 프로파일링 ──────────────────────────────────────────────
+  // 시청 페이지 확인은 반드시 페이지 컨텍스트에서 한다. 서비스워커에서 하면
+  // 쿠키가 실리지 않아 유튜브가 요청을 거부한다(실측 2026-08-20).
+  // 한 건이 실패해도 전체가 멈추지 않도록, 아직 모르는 채널을 매번 다시 채워 넣는다.
+  const wanted = new Map();      // channelId -> {videoId, channel}
   const inFlight = new Set();
-  const MAX_CONCURRENT = 3;
+  const MAX_CONCURRENT = 2;
+  let pausedUntil = 0;           // 연속 실패 시 잠시 쉰다
+  let failStreak = 0;
 
   function queueProfile(channelId, videoId, channel) {
+    // 재생목록·믹스 카드는 ID 가 PL/RD/OLAK 라 시청 페이지로 열 수 없다.
+    // 그걸 계속 시도하면 실패가 쌓여 학습 전체가 멈춘다(실측 2026-08-20).
     if (!channelId || channelId in profiles) return;
+    if (!/^[\w-]{11}$/.test(videoId || '')) return;
     if (!wanted.has(channelId)) wanted.set(channelId, { videoId, channel });
     pump();
   }
 
   function pump() {
+    if (Date.now() < pausedUntil) return;
     for (const [channelId, job] of wanted) {
       if (inFlight.size >= MAX_CONCURRENT) break;
       if (inFlight.has(channelId)) continue;
       inFlight.add(channelId);
 
-      let settled = false;
-      const done = (verdict) => {
-        if (settled) return;
-        settled = true;
+      window.NAM_BADGES.checkVideo(job.videoId).then((verdict) => {
         inFlight.delete(channelId);
         if (verdict) {
+          failStreak = 0;
           profiles[channelId] = verdict;
-          wanted.delete(channelId);            // 판정을 받았으니 더 볼 필요 없다
-          if (verdict === 'ai') { pushLists(); sweepDom(); }
+          wanted.delete(channelId);
+          chrome.runtime.sendMessage({
+            type: 'NAM_MARK', channelId, verdict, channel: job.channel,
+          }).catch(() => {});
+          if (verdict === 'ai') { pushLists(); resweep(); }
+        } else if (++failStreak >= 4) {
+          pausedUntil = Date.now() + 60000;   // 계속 실패하면 1분 쉰다
+          failStreak = 0;
         }
-        // 판정 불가면 wanted 에 남겨 다음 주기에 다시 시도한다
         pump();
-      };
-      // 서비스워커가 유휴 종료되면 응답이 오지 않는다 — 그때도 자리를 비워준다
-      const timer = setTimeout(() => done(null), 20000);
-      chrome.runtime.sendMessage({ type: 'NAM_PROFILE', channelId, videoId: job.videoId, channel: job.channel })
-        .then((res) => { clearTimeout(timer); done(res && res.verdict); })
-        .catch(() => { clearTimeout(timer); done(null); });
+      }).catch(() => { inFlight.delete(channelId); pump(); });
     }
   }
 
@@ -318,7 +334,7 @@
         profiles[meta.channelId] = 'ai';
         chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: meta.channelId, verdict: 'ai', channel: meta.channel }).catch(() => {});
         pushLists();
-        sweepDom();
+        resweep();
       }
       v = { action: 'block', reason: 'youtube-ai-label' };
     }

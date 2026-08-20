@@ -24,7 +24,7 @@
   function filter(data) {
     if (!enabled || !data || typeof data !== 'object') return data;
     try {
-      const { removed, candidates } = H.filterTree(data, lists);
+      const { removed, candidates, idMap } = H.filterTree(data, lists);
       if (removed.length) {
         fixAutoplay(data, removed);
         post('NAM_REMOVED', {
@@ -40,6 +40,10 @@
         const uniq = candidates.filter((c) => !seen.has(c.channelId) && seen.add(c.channelId));
         post('NAM_CANDIDATES', { items: uniq.slice(0, 20) });
       }
+      // 화면 카드는 채널을 /@handle 로만 링크해 채널 ID 를 알 수 없다.
+      // 데이터가 아는 videoId→channelId 매핑을 넘겨 학습 결과가 화면에 반영되게 한다.
+      const ids = Object.keys(idMap);
+      if (ids.length) post('NAM_IDMAP', { map: idMap });
       reportWatch(data);
     } catch (e) { /* 원본 유지 */ }
     return data;

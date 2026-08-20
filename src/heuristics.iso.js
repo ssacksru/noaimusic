@@ -295,6 +295,7 @@
   function filterTree(rootNode, lists) {
     const removed = [];
     const candidates = [];
+    const idMap = {};      // videoId -> channelId (화면 카드가 채널을 못 알아볼 때 쓴다)
     (function walk(node) {
       if (Array.isArray(node)) {
         for (let i = node.length - 1; i >= 0; i--) {
@@ -302,13 +303,14 @@
           try {
             const meta = metaFromItem(node[i]);
             if (meta && meta.title) {
+              if (meta.videoId && meta.channelId) idMap[meta.videoId] = meta.channelId;
               const v = evaluate(meta, lists);
               if (v.action === 'block') {
                 node.splice(i, 1);
                 removed.push(Object.assign({ reason: v.reason }, meta));
                 blocked = true;
-              } else if (v.reason === 'music-clean' && meta.channelId) {
-                // videoId 를 함께 넘기면 프로파일링이 채널 페이지를 거치지 않아도 된다
+              } else if (v.reason === 'music-clean' && meta.channelId && /^[\w-]{11}$/.test(meta.videoId || '')) {
+                // 영상 ID 일 때만 후보로 삼는다 — 재생목록 ID(PL/RD/OLAK)는 시청 페이지로 못 연다
                 candidates.push({ channelId: meta.channelId, channel: meta.channel, videoId: meta.videoId });
               }
             }
@@ -319,7 +321,7 @@
         for (const k in node) walk(node[k]);
       }
     })(rootNode);
-    return { removed, candidates };
+    return { removed, candidates, idMap };
   }
 
   // 트리에서 첫 번째 비디오 videoId (자동재생 대체 후보 탐색용)

@@ -45,6 +45,7 @@
       "js": [
         "src/heuristics.iso.js",
         "src/lists.js",
+        "src/badges.js",
         "src/content.js"
       ],
       "css": [

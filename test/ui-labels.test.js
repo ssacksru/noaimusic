@@ -87,10 +87,10 @@ test('키보드 포커스가 보이게 되어 있다', () => {
 
 test('AI 배지 판별이 언어에 의존하지 않는다', () => {
   // 라벨은 로케일마다 다르다: AI(ko/en/ja) · IA(es/fr/pt) · KI(de) · ИИ(ru) · एआई(hi) (실측 2026-08-20)
-  const bg = read('src/background.js');
-  assert.match(bg, /iconType === 'INFO'/, '아이콘 종류로 판별하지 않는다');
-  assert.match(bg, /BADGE_STYLE_TYPE_SIMPLE/, '배지 스타일을 확인하지 않는다');
-  assert.ok(!/badges\.some\(\(l\) => \/\^AI\$\/i/.test(bg), '아직 "AI" 글자에 의존한다');
+  const bd = read('src/badges.js');
+  assert.match(bd, /iconType === 'INFO'/, '아이콘 종류로 판별하지 않는다');
+  assert.match(bd, /BADGE_STYLE_TYPE_SIMPLE/, '배지 스타일을 확인하지 않는다');
+  assert.ok(!/badges\.some\(\(l\) => \/\^AI\$\/i/.test(bd), '아직 "AI" 글자에 의존한다');
 
   const page = read('src/page.js');
   assert.match(page, /iconType === 'INFO'/, 'page.js 가 글자에 의존한다');
