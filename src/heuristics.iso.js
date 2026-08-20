@@ -11,6 +11,8 @@
       '\\bmix(es|tape)?\\b', '\\bmegamix\\b', '\\bmedley\\b', '\\bcompilation\\b',
       '\\bfull\\s+album\\b', '\\bnonstop\\b', '\\bgreatest\\s+hits\\b', '\\b24/7\\b',
       '\\bbgm\\b', '노동요', '출근길', '드라이브\\s*(곡|노래|음악)',
+      // 커버곡은 길이와 무관하게 음악 콘텐츠다 — AI 딥페이크 커버가 3분짜리로 올라온다
+      '\\bcovers?\\b', '커버',
     ].join('|'),
     'i'
   );
@@ -33,6 +35,13 @@
       '\\bband\\b', '\\balbum\\b', '\\bsoundtrack\\b', '\\bmashup\\b', '\\bkaraoke\\b',
       '\\bgroove\\b', '\\bvibes?\\b', '\\bbossa\\b', '\\bblues\\b', '\\bcountry\\s+music\\b',
       '\\breggae\\b', '\\bsynthwave\\b', '\\bcity\\s*pop\\b',
+      // 다국어 음악어 — 이게 없어 스페인어·러시아어·일본어 AI 음악이 음악으로 인식조차 안 됐다
+      // (실측 2026-08-20: "Música generada por IA" 가 not-music 으로 통과했다)
+      'm[uú]sic[ao]s?', '\\bmusik\\b', '\\bmusique\\b', 'canci[oó]n(es)?', '\\bcanciones\\b',
+      'музык', 'песн', '音楽', '音乐', '\\bkanpai\\b', '\\bcumbia\\b', '\\bsalsa\\b',
+      '\\bbachata\\b', '\\breggaeton\\b', '\\bbalada\\b', '\\bflamenco\\b', '\\brumba\\b',
+      '\\bsertanejo\\b', '\\bmpb\\b', '\\bsamba\\b', '\\bfado\\b', '\\blied(er)?\\b',
+      '\\bchanson\\b', '\\bplaylist\\b', '作業用', 'ボカロ', '\\binst\\b',
     ].join('|'),
     'i'
   );
@@ -50,12 +59,30 @@
       'ai\\s*(커버|노래|음악|플레이리스트|플리|가수|목소리|보컬|송)',
       '인공\\s*지능\\s*(음악|노래|작곡|커버|가수|보컬)?',
       '생성형\\s*(ai|음악)',
+      // 스페인어·포르투갈어: AI 를 IA 라고 쓴다 (실측 2026-08-20 — 스페인어 검색 결과가 통째로 새어나갔다)
+      'intelig[eê]ncia\\s+artificial',
+      '(generad|cread|hech|compuest|cantad)[oa]s?\\s+(por|con|usando)\\s+i\\.?a\\.?',
+      '\\b(con|por|de)\\s+i\\.?a\\.?(?![A-Za-z])',
+      '\\bi\\.?a\\.?[\\s\\-]*(cover|music|m[uú]sica|canci[oó]n|versi[oó]n|generad|beats)',
+      // 프랑스어
+      'intelligence\\s+artificielle', 'g[eé]n[eé]r[eé]e?\\s+par\\s+i\\.?a\\.?',
+      // 독일어
+      'k[uü]nstliche[rn]?\\s+intelligenz', '\\bki[\\s\\-]*(generiert|musik|song)',
+      // 러시아어
+      'нейросет', '\\bии[\\s\\-]*(музык|генер|песн)',
+      // 일본어
+      'ai\\s*(生成|作曲|作成|カバー|音楽|ソング)', '生成\\s*ai', 'aiで(作|生成)',
+      // 장르어 바로 뒤의 IA — 스페인어권에서 흔한 표기 ("Cumbia IA", "Versión JAZZ IA")
+      '(versi[oó]n|cover|remix|mix|cumbia|salsa|bachata|reggaeton|balada|flamenco|rumba|jazz|rock|pop|trap|house|techno|blues)\\s*[\\-–|·]?\\s*i\\.?a\\.?(?![A-Za-z])',
+      // 해시태그로 AI 를 밝히는 관행 (#ai #aimusic #aiart #sunoai)
+      '#\\s?ai(music|art|song|cover|generated)?(?![A-Za-z])',
     ].join('|'),
     'i'
   );
 
-  // 맨몸 "AI"/"A.I." 토큰 — 대문자만, 영문자 인접 금지 ("PAID", "Aida" 등 오탐 방지)
-  const AI_BARE = /(^|[^A-Za-z])A\.?I\.?(?![A-Za-z])/;
+  // 맨몸 AI 토큰 — 대문자만, 영문자 인접 금지 ("PAID", "Aida", "MEDIA" 등 오탐 방지).
+  // 언어별 표기를 함께 본다: AI(영·한·일) · IA(스페인·포르투갈·프랑스) · KI(독일) · ИИ(러시아).
+  const AI_BARE = /(^|[^A-Za-z])(?:A\.?I\.?|IA|KI)(?![A-Za-z])|(^|[^А-Яа-я])ИИ(?![А-Яа-я])/;
 
   // AI를 부정하는 표기 — "(NO AI)" 처럼 AI가 아님을 강조한 영상을 차단하면 정반대다.
   // 단어 시작 경계가 없으면 "Su(no AI)" 처럼 낱말 속 조각이 걸린다.

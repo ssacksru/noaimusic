@@ -73,6 +73,35 @@ test('진짜 부정 표기는 그대로 통과시킨다', () => {
   }
 });
 
+test('다국어 AI 표기를 잡는다 (IA·KI·нейросеть·AI生成)', () => {
+  // 스페인어권은 AI 를 IA 라고 쓴다. 이걸 몰라서 스페인어 검색 결과가
+  // 통째로 새어나갔다 (2026-08-20 실측: 13개 중 12개 미탐).
+  const b = (t, d = 0, p = true) => ev({ title: t, channel: '', durationSec: d, isPlaylist: p }).action;
+  assert.equal(b('🎧 Música Electrónica Creada por Inteligencia Artificial'), 'block');
+  assert.equal(b('Música generada por IA'), 'block');
+  assert.equal(b('Cumbia IA (Neo Música 2026) videos musicales IA en Español'), 'block');
+  assert.equal(b('La Nave del Olvido - José José (Versión JAZZ IA)', 350, false), 'block');
+  assert.equal(b('KI-generierte Musik Playlist'), 'block');
+  assert.equal(b('Музыка созданная нейросетью плейлист', 3600, false), 'block');
+  assert.equal(b('[BGM / Inst] 水天一碧 | relax #ai #aiart', 3627, false), 'block');
+});
+
+test('다국어 확장이 일반 음악·영상을 오탐하지 않는다', () => {
+  const p = (t, d = 3600) => ev({ title: t, channel: '', durationSec: d, isPlaylist: false }).action;
+  assert.equal(p('Sofia Carson - Live in Madrid concierto'), 'pass');   // IA 가 낱말 속에 있음
+  assert.equal(p('Mia Martina - Latin Moon official video', 240), 'pass');
+  assert.equal(p('MEDIA PLAYER review 2026', 600), 'pass');
+  assert.equal(p('Música clásica de Mozart sinfonía completa'), 'pass');
+});
+
+test('커버곡은 길이와 무관하게 음악으로 본다', () => {
+  // AI 딥페이크 커버는 3분짜리로 올라온다 — 장시간 관문을 요구하면 전부 놓친다.
+  assert.equal(ev({ title: 'Maracas - Cover AMLO x Donald Trump IA', durationSec: 80 }).action, 'block');
+  assert.equal(ev({ title: '적우 - 하루만 AI 커버', durationSec: 280 }).action, 'block');
+  // 사람이 부른 커버는 그대로 둔다
+  assert.equal(ev({ title: 'Adele - Hello (piano cover)', durationSec: 240 }).reason, 'music-clean');
+});
+
 test('목록 우선순위: 허용 > 차단 > 시드 > 휴리스틱', () => {
   const lists = { allowed: { UCA: 1 }, blocked: { UCB: 1 }, seed: { UCS: 1 } };
   assert.equal(ev({ title: 'AI 노래모음', channel: 'x', channelId: 'UCA' }, lists).reason, 'allowlist');
