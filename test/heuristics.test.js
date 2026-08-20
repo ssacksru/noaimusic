@@ -143,6 +143,15 @@ test('곡을 뜻하는 말이 있으면 짧아도 음악으로 본다', () => {
   assert.equal(ev({ title: 'Mia - chanson française live', durationSec: 240 }).action, 'pass');
 });
 
+test('도구명이 낱말 속에 있으면 걸리지 않는다', () => {
+  // "Studio" 안에 "udio" 가 들어 있다 — 경계가 없으면 스튜디오 이름이 전부 AI 로 잡힌다
+  for (const t of ['Lofi beats from Soul R&B Studio - 3 hours',
+                   'MyShare music studio playlist',
+                   'Studio Ghibli piano collection']) {
+    assert.equal(ev({ title: t, durationSec: 3600 }).action, 'pass', t);
+  }
+});
+
 test('목록 우선순위: 허용 > 차단 > 시드 > 휴리스틱', () => {
   const lists = { allowed: { UCA: 1 }, blocked: { UCB: 1 }, seed: { UCS: 1 } };
   assert.equal(ev({ title: 'AI 노래모음', channel: 'x', channelId: 'UCA' }, lists).reason, 'allowlist');
