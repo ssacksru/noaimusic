@@ -203,3 +203,11 @@ test('시크릿 탭의 시청 내용이 기록에 남지 않는다', () => {
   assert.match(b, /fresh\.map\(\(\) => \(\{\}\)\)/, '시크릿 항목의 내용을 비우지 않는다');
   assert.match(b, /items\.filter\(\(i\) => i\.title \|\| i\.videoId\)/, '빈 항목이 목록에 들어간다');
 });
+
+test('설치 직후 열려 있던 유튜브 탭이 자동으로 살아난다', () => {
+  // 설치 전 탭엔 콘텐츠 스크립트가 없어 "설치했는데 안 걸러짐"이 된다 (2026-08-20 실사용 제보)
+  const b = read('src/background.js');
+  assert.match(b, /onInstalled\.addListener/, '설치 훅이 없다');
+  assert.match(b, /reason !== 'install'/, "첫 설치 때만 새로고침해야 한다 (업데이트 때 재생을 끊으면 안 된다)");
+  assert.match(b, /tabs\.query\(\{ url: 'https:\/\/www\.youtube\.com\/\*' \}\)/, '유튜브 탭만 대상이어야 한다');
+});

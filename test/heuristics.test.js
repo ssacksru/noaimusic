@@ -75,6 +75,15 @@ test('영어 장르어도 음악으로 인식한다', () => {
   assert.equal(ev({ title: 'NBA highlights - AI referee controversy', channel: '' }).reason, 'not-music');
 });
 
+test('부정 표기에 명사가 끼어도 통과시킨다 (실사용 오탐)', () => {
+  // 2026-08-20 실사용 제보: 사람이 연주한 채널의 "AI 음악 아님" 표기를 차단했다
+  const t = '잘때 듣기 좋은 음악.. 10분 안에 잠이 솔솔 옵니다 | 🙅🏻 AI 음악 아님 | Sleep Jazz | Relaxing Background Music';
+  assert.equal(ev({ title: t, channel: 'WRG 우리가 듣고 싶어서 연주한 playlist', durationSec: 3600 }).reason, 'ai-negated');
+  assert.equal(ev({ title: 'AI 노래 아님! 직접 부른 커버', durationSec: 240 }).reason, 'ai-negated');
+  // 부정 확장이 진짜 AI 를 놓치게 만들면 안 된다
+  assert.equal(ev({ title: 'AI 음악 모음 1시간', durationSec: 3600 }).action, 'block');
+});
+
 test('진짜 부정 표기는 그대로 통과시킨다', () => {
   for (const t of ['(NO AI) BGM 모음 플레이리스트', 'NON-AI acoustic playlist',
                    'AI-free jazz collection', 'Without AI - real musicians only playlist']) {

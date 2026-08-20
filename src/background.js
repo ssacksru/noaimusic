@@ -1,6 +1,21 @@
 // NoAI Music — service worker. 배지 카운트 · 일별 통계 · 채널 프로파일링.
 'use strict';
 
+// 설치 직후, 이미 열려 있던 유튜브 탭에는 콘텐츠 스크립트가 주입되지 않는다.
+// 사용자는 "설치했는데 AI 배지가 있어도 안 걸러진다"를 겪는다(2026-08-20 실사용 제보).
+// 첫 설치 때 한 번, 열려 있는 유튜브 탭을 새로고침해 즉시 동작하게 한다.
+// (host 권한이 youtube.com 을 덮으므로 추가 권한은 필요 없다)
+chrome.runtime.onInstalled.addListener(async (details) => {
+  try { await chrome.storage.local.set({ installedEvent: { reason: details.reason, at: Date.now() } }); } catch (e) {}
+  if (details.reason !== 'install') return;
+  try {
+    const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });
+    for (const t of tabs) {
+      try { await chrome.tabs.reload(t.id); } catch (e) { /* 닫힌 탭 등은 무시 */ }
+    }
+  } catch (e) { /* 조회 실패해도 설치는 계속 */ }
+});
+
 const tabCounts = {};          // tabId -> { url, seen: Set(videoId) }
 const RECENT_CAP = 50;
 
