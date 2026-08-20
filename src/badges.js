@@ -33,16 +33,16 @@
 
   // 배지가 없을 때 쓰는 추정 신호 — 조회수와 해시태그의 조합.
   //
-  // 실측(2026-08-20, AI 44 vs 사람 170중 126 — 무명 창작자 66명 포함):
-  //   조회수 3천 미만 + 해시태그 8개 이상 → 검출 39% · 오탐 0.8% · 정확도 94%
-  //   (해시태그 22개 단독은 검출 27% · 오탐 2.4% — 이 조합이 둘 다 낫다)
-  // 원리: AI 는 대량으로 찍어내지만 아무도 듣지 않는다(중앙 조회수 1,572회 vs
-  // 사람 54만회, 500배 차이). 낮은 조회수 자체는 신생 창작자와 겹치므로
-  // 해시태그 스팸이 함께 있을 때만 추정한다.
-  // 조회수를 모르는 경우엔 예전 기준(해시태그 22개)으로만 판단한다.
-  const HASHTAG_MIN = 22;
+  // 대규모 실측(2026-08-20, 채널 772개 → 오염 제거 후 AI 455 vs 비AI 317):
+  //   조회수 3천 미만 + 해시태그 12개 이상 → 검출 23% · 오탐 0.6% (95%CI 0.2~2.3)
+  // 남은 오탐 2건도 미표기 AI 로 의심되는 채널이라 실제 오탐은 더 낮다.
+  // 원리: AI 는 대량으로 찍어내지만 아무도 듣지 않는다(중앙 조회수 1,206회 vs
+  // 비AI 24만회). 낮은 조회수 자체는 신생 창작자·저조회 일반 영상과 겹치므로
+  // (조회수 단독 오탐 30%) 해시태그 스팸이 함께 있을 때만 추정한다.
+  // 해시태그 단독 폴백은 큰 표본에서 오탐 6.9%로 드러나 제거했다 —
+  // 조회수를 모르면 추정하지 않는다.
   const COMBO_VIEWS_MAX = 3000;
-  const COMBO_HASHTAG_MIN = 8;
+  const COMBO_HASHTAG_MIN = 12;
   function hashtagCount(html) {
     try {
       const m = html.match(/var ytInitialData\s*=\s*(\{.+?\});<\/script>/s);
@@ -71,18 +71,15 @@
       const badges = watchBadges(html);
       if (badges === null) return null;
       if (badges.some(isAiBadge)) return { verdict: 'ai', reason: 'label' };
-      if (useGuess) {
-        const tags = hashtagCount(html);
-        const guess = (views != null)
-          ? (views < COMBO_VIEWS_MAX && tags >= COMBO_HASHTAG_MIN)
-          : (tags >= HASHTAG_MIN);
-        if (guess) return { verdict: 'ai', reason: 'hashtags' };
+      if (useGuess && views != null
+          && views < COMBO_VIEWS_MAX && hashtagCount(html) >= COMBO_HASHTAG_MIN) {
+        return { verdict: 'ai', reason: 'hashtags' };
       }
       return { verdict: 'ok', reason: 'label' };
     } catch (e) { return null; }
   }
 
-  const api = { parseInitialData, watchBadges, isAiBadge, checkVideo, hashtagCount, HASHTAG_MIN };
+  const api = { parseInitialData, watchBadges, isAiBadge, checkVideo, hashtagCount };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.NAM_BADGES = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
