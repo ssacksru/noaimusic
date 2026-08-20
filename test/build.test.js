@@ -166,3 +166,13 @@ test('추정 신호는 유튜브 공시와 구분되고 끌 수 있다', () => {
   assert.match(html, /id="useGuess"/, '팝업에 추정 끄기 옵션이 없다');
   assert.match(read('popup/popup.js'), /정황으로 추정/, '추정으로 잡은 채널을 표시하지 않는다');
 });
+
+test('학습 순서를 조회수로 정한다', () => {
+  // 확인은 동시에 두 개씩만 가능하므로 순서가 곧 속도다.
+  // 조회수 5천 미만이면 AI 86% · 사람 3% (2026-08-20 실측) — 차단 근거로는 신생
+  // 창작자를 막으므로 쓰지 않고, 순서를 정하는 데만 쓴다.
+  const c = read('src/content.js');
+  assert.match(c, /function byPriority\(\)/, '우선순위 정렬이 없다');
+  assert.match(c, /views/, '조회수를 쓰지 않는다');
+  assert.match(read('src/heuristics.js'), /function parseViews/, '조회수 파싱이 없다');
+});

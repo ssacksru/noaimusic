@@ -6,6 +6,15 @@ const H = require('../src/heuristics.js');
 const L = { allowed: {}, blocked: {}, seed: {} };
 const ev = (meta, lists) => H.evaluate(meta, lists || L);
 
+test('parseViews — 조회수 표기를 숫자로', () => {
+  assert.equal(H.parseViews('조회수 1.2만회'), 12000);
+  assert.equal(H.parseViews('조회수 345회'), 345);
+  assert.equal(H.parseViews('1.2M views'), 1200000);
+  assert.equal(H.parseViews('조회수 5.3천회'), 5300);
+  assert.equal(H.parseViews(''), null);
+  assert.equal(H.parseViews(undefined), null);
+});
+
 test('parseDuration', () => {
   assert.equal(H.parseDuration('3:45'), 225);
   assert.equal(H.parseDuration('1:02:03'), 3723);

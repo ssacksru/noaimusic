@@ -123,6 +123,18 @@
     'i'
   );
 
+  // "조회수 1.2만회" / "1.2M views" → 숫자. 검사 우선순위를 정하는 데 쓴다.
+  function parseViews(text) {
+    if (!text || typeof text !== 'string') return null;
+    const m = text.replace(/,/g, '').match(/([\d.]+)\s*([만천억KMB])?/i);
+    if (!m) return null;
+    const n = parseFloat(m[1]);
+    if (!isFinite(n)) return null;
+    const unit = (m[2] || '').toUpperCase();
+    const mul = { '만': 1e4, '천': 1e3, '억': 1e8, K: 1e3, M: 1e6, B: 1e9 }[unit] || 1;
+    return Math.round(n * mul);
+  }
+
   function parseDuration(text) {
     if (!text || typeof text !== 'string') return 0;
     const m = text.trim().match(/^(?:(\d+):)?(\d{1,2}):(\d{2})$/);
@@ -223,6 +235,7 @@
     }
     return {
       videoId: r.videoId || r.playlistId || '',
+      views: parseViews(textOf(r.viewCountText) || textOf(r.shortViewCountText)),
       title: textOf(r.title) || textOf(r.headline),
       channel: run0 ? run0.text || '' : '',
       channelId:
@@ -261,6 +274,12 @@
       }
       if (!meta.channel && rows[0] && rows[0].metadataParts && rows[0].metadataParts[0]) {
         meta.channel = textOf(rows[0].metadataParts[0].text);
+      }
+      for (const row of rows) {
+        for (const part of row.metadataParts || []) {
+          const t = textOf(part.text);
+          if (/조회수|views|回視聴|vistas/i.test(t)) { meta.views = parseViews(t); }
+        }
       }
     } catch (e) { /* 메타데이터 구조가 다르면 제목만으로 판별 */ }
     try {
@@ -311,7 +330,8 @@
                 blocked = true;
               } else if (v.reason === 'music-clean' && meta.channelId && /^[\w-]{11}$/.test(meta.videoId || '')) {
                 // 영상 ID 일 때만 후보로 삼는다 — 재생목록 ID(PL/RD/OLAK)는 시청 페이지로 못 연다
-                candidates.push({ channelId: meta.channelId, channel: meta.channel, videoId: meta.videoId });
+                candidates.push({ channelId: meta.channelId, channel: meta.channel,
+                                  videoId: meta.videoId, views: meta.views });
               }
             }
           } catch (e) { /* 항목 하나 실패는 무시하고 계속 */ }
@@ -336,7 +356,7 @@
     return null;
   }
 
-  const api = { evaluate, parseDuration, filterTree, metaFromItem, firstVideoId, AI_STRONG, MUSIC_STRONG };
+  const api = { evaluate, parseDuration, parseViews, filterTree, metaFromItem, firstVideoId, AI_STRONG, MUSIC_STRONG };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.NAM_HEURISTICS = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

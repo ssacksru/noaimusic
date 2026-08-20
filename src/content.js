@@ -81,7 +81,7 @@
       chrome.runtime.sendMessage({ type: 'NAM_STATS', items: e.data.items }).catch(() => {});
     } else if (e.data.type === 'NAM_CANDIDATES') {
       for (const c of e.data.items) {
-        if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId, c.channel);
+        if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId, c.channel, c.views);
       }
     } else if (e.data.type === 'NAM_IDMAP') {
       Object.assign(videoChannel, e.data.map);
@@ -111,6 +111,13 @@
       if (/^\d+(:\d{2})+$/.test(t)) { durationSec = H.parseDuration(t); break; }
     }
 
+    // 조회수 — 검사 순서를 정하는 데 쓴다 (낮을수록 AI 일 확률이 높다)
+    let views = null;
+    for (const el2 of el.querySelectorAll('.ytContentMetadataViewModelMetadataRow span, #metadata-line span')) {
+      const t = (el2.textContent || '').trim();
+      if (/조회수|views|回視聴|vistas/i.test(t)) { views = H.parseViews(t); break; }
+    }
+
     // videoId — 통계 중복 제거 키. lockup 은 content-id-XXX 클래스에 실려 온다.
     let videoId = '';
     const cid = String(el.className || '').match(/content-id-([\w-]+)/);
@@ -123,6 +130,7 @@
 
     return {
       videoId,
+      views,
       title: (titleEl && (titleEl.getAttribute('title') || titleEl.textContent) || '').trim(),
       channel: ((chanEl && chanEl.textContent) || (rowEl && rowEl.textContent) || '').trim(),
       channelId: (m && m[1]) || videoChannel[videoId] || '',
@@ -159,7 +167,7 @@
           chrome.runtime.sendMessage({ type: 'NAM_STATS', items: [{ ...meta, reason: v.reason }] }).catch(() => {});
         } else if (v.reason === 'music-clean' && meta.channelId && !(meta.channelId in profiles)) {
           el.dataset.namState = 'candidate';
-          queueProfile(meta.channelId, meta.videoId, meta.channel);
+          queueProfile(meta.channelId, meta.videoId, meta.channel, meta.views);
         }
       } catch (e) { /* 카드 하나 실패는 무시 */ }
     }
@@ -176,18 +184,32 @@
   let pausedUntil = 0;           // 연속 실패 시 잠시 쉰다
   let failStreak = 0;
 
-  function queueProfile(channelId, videoId, channel) {
+  function queueProfile(channelId, videoId, channel, views) {
     // 재생목록·믹스 카드는 ID 가 PL/RD/OLAK 라 시청 페이지로 열 수 없다.
     // 그걸 계속 시도하면 실패가 쌓여 학습 전체가 멈춘다(실측 2026-08-20).
     if (!channelId || channelId in profiles) return;
     if (!/^[\w-]{11}$/.test(videoId || '')) return;
-    if (!wanted.has(channelId)) wanted.set(channelId, { videoId, channel });
+    if (!wanted.has(channelId)) wanted.set(channelId, { videoId, channel, views });
     pump();
+  }
+
+  // 확인은 한 번에 두 개씩만 할 수 있으므로 순서가 곧 속도다.
+  // 조회수가 낮은 음악 채널일수록 AI 일 확률이 높다 —
+  // 실측(2026-08-20): 조회수 5천 미만이면 AI 86% · 사람 3%.
+  // 차단 근거로 쓰면 신생 창작자를 막지만, 확인 순서로 쓰면 오탐 없이 빨라진다.
+  function byPriority() {
+    return [...wanted.entries()].sort((a, b) => {
+      const va = a[1].views, vb = b[1].views;
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      return va - vb;
+    });
   }
 
   function pump() {
     if (Date.now() < pausedUntil) return;
-    for (const [channelId, job] of wanted) {
+    for (const [channelId, job] of byPriority()) {
       if (inFlight.size >= MAX_CONCURRENT) break;
       if (inFlight.has(channelId)) continue;
       inFlight.add(channelId);
