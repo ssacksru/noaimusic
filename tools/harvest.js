@@ -7,6 +7,7 @@ const fs = require('node:fs');
 
 const QUERIES = JSON.parse(fs.readFileSync(__dirname + '/queries.json', 'utf8'));
 const OUT = __dirname + '/harvest-result.json';
+const save = async (state) => fs.writeFileSync(OUT, JSON.stringify(state));
 
 (async () => {
   const bg = await wakeServiceWorker();
@@ -71,22 +72,35 @@ const OUT = __dirname + '/harvest-result.json';
       seenCh.add(it.cid); todo.push(it);
     }
 
-    let aiHere = 0;
+    // 못 읽은 페이지를 "AI 아님" 으로 세면 안 된다.
+    // 유튜브는 대량 요청 뒤 fetch 를 막는데, 그때 조용히 전부 정상으로 판정돼
+    // 수집 결과가 통째로 거짓이 된다(2026-08-20 실측).
+    let aiHere = 0, failed = 0;
     for (const it of todo) {
       if (state.checkedVideos[it.v]) continue;
-      let verdict = null;
+      let badges = null;
       try {
-        verdict = JSON.parse(await b.eval(`
+        const r = JSON.parse(await b.eval(`
           (async () => {
-            const html = await (await fetch('https://www.youtube.com/watch?v=${it.v}', { credentials:'omit' })).text();
-            return JSON.stringify({ badges: watchBadgeLabels(html) });
+            try {
+              const html = await (await fetch('https://www.youtube.com/watch?v=${it.v}', { credentials:'omit' })).text();
+              return JSON.stringify({ badges: watchBadgeLabels(html) });
+            } catch (e) { return JSON.stringify({ err: String(e.message || e).slice(0, 60) }); }
           })()
         `));
-      } catch (e) { continue; }
+        badges = r.err ? null : r.badges;
+      } catch (e) { badges = null; }
+
+      if (badges === null) {           // 판정 불가 — 기록하지 않고 다음에 다시 본다
+        failed++;
+        if (failed >= 5) { console.log('  요청이 막힌 것으로 보여 중단한다 (나중에 다시 실행하면 이어서 한다)'); await save(state); return; }
+        await new Promise((r) => setTimeout(r, 2000 * failed));   // 물러섰다가 재시도
+        continue;
+      }
+      failed = 0;
       state.checkedVideos[it.v] = 1;
       state.stats.videos++;
-      const isAi = (verdict.badges || []).some((l) => /^AI$/i.test(l));
-      if (isAi) {
+      if (badges.some((l) => /^AI$/i.test(l))) {
         state.channels[it.cid] = it.ch || it.cid;
         state.stats.ai++; aiHere++;
       }

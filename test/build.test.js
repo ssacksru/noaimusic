@@ -95,3 +95,12 @@ test('팝업 HTML 이 부르는 로컬 파일이 모두 존재한다', () => {
     assert.ok(fs.existsSync(path.join(dir, u)), `팝업이 없는 파일을 부른다: ${u}`);
   }
 });
+
+test('수집기가 판정 불가를 "AI 아님" 으로 세지 않는다', () => {
+  // 유튜브는 대량 요청 뒤 fetch 를 막는다. 그때 실패를 정상으로 세면
+  // 수집 결과 전체가 조용히 거짓이 된다(2026-08-20 실측 — 신규 0개로 나왔다).
+  const src = read('tools/harvest.js');
+  assert.match(src, /badges === null/, '판정 불가를 구분하지 않는다');
+  assert.ok(!/\(verdict\.badges \|\| \[\]\)/.test(src), '실패를 빈 배열로 뭉개고 있다');
+  assert.match(src, /요청이 막힌/, '연속 실패 시 중단하는 처리가 없다');
+});

@@ -63,8 +63,8 @@ li .c {
   display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 li button {
-  flex: none; padding: 4px 9px; font-size: 11px; border: 1px solid var(--line);
-  background: transparent; color: var(--fg); border-radius: 12px; cursor: pointer;
+  flex: none; min-height: 26px; padding: 5px 10px; font-size: 11px; border: 1px solid var(--line);
+  background: transparent; color: var(--fg); border-radius: 13px; cursor: pointer;
 }
 .empty { color: var(--sub); font-size: 12px; text-align: center; padding: 14px 0; margin: 0; }
 
@@ -86,3 +86,19 @@ footer {
 /* 꺼진 상태를 한눈에 */
 body.disabled .stats, body.disabled section.list, body.disabled section.lists { opacity: .45; }
 li button:hover { background: var(--chip); }
+
+/* 키보드로 쓰는 사람이 지금 어디에 있는지 보이게 한다.
+   스위치는 투명한 체크박스라 옆의 슬라이더에 표시를 옮겨야 한다. */
+:root { --focus: #1a73e8; }
+@media (prefers-color-scheme: dark) { :root { --focus: #8ab4f8; } }
+button:focus-visible,
+a:focus-visible,
+input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.switch input:focus-visible + .slider {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}

@@ -76,3 +76,11 @@ test('페이지에 주입하는 요소는 nam- 접두사를 쓴다', () => {
     assert.ok(id.startsWith('nam-'), `유튜브와 충돌할 수 있는 id: ${id}`);
   }
 });
+
+test('키보드 포커스가 보이게 되어 있다', () => {
+  const css = read('popup/popup.css');
+  assert.match(css, /:focus-visible/, '포커스 표시 규칙이 없다');
+  assert.match(css, /\.switch input:focus-visible \+ \.slider/,
+    '스위치는 투명한 체크박스라 슬라이더에 포커스를 옮겨야 한다');
+  assert.match(css, /outline:\s*2px solid/, '포커스 윤곽선이 없다');
+});
