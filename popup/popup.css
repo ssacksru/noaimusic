@@ -102,3 +102,7 @@ input[type="checkbox"]:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+
+/* 눌러서 보기 — 제목이 링크임을 알린다 */
+li .meta.link { cursor: pointer; }
+li .meta.link:hover .t { text-decoration: underline; }

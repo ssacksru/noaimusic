@@ -29,7 +29,16 @@ function timeAgo(ts) {
   return `${Math.floor(h / 24)}일 전`;
 }
 
-function row(title, sub, btnText, onClick) {
+// 걸러낸 것을 눌러 "이번만 보기" — 10분짜리 통행증을 끊고 연다.
+// 목록은 그대로 유지되므로 차단은 풀리지 않는다.
+async function openWithPass(url, videoId, channelId) {
+  await chrome.storage.local.set({
+    viewPass: { videoId: videoId || '', channelId: channelId || '', until: Date.now() + 10 * 60 * 1000 },
+  });
+  chrome.tabs.create({ url });
+}
+
+function row(title, sub, btnText, onClick, openTo) {
   const li = document.createElement('li');
   const meta = document.createElement('div');
   meta.className = 'meta';
@@ -39,6 +48,11 @@ function row(title, sub, btnText, onClick) {
   c.className = 'c'; c.textContent = sub;
   meta.append(t, c);
   li.append(meta);
+  if (openTo) {
+    meta.classList.add('link');
+    meta.title = '눌러서 보기 (차단은 유지됨)';
+    meta.onclick = openTo;
+  }
   if (btnText) {
     const btn = document.createElement('button');
     btn.textContent = btnText;
@@ -88,7 +102,10 @@ async function render() {
     const sub = `${item.channel || '알 수 없음'} · ${reasonLabel(item.reason)}${item.at ? ' · ' + timeAgo(item.at) : ''}`;
     ul.append(row(item.title || '(제목 없음)', sub,
       item.channelId ? '허용' : null,
-      () => allowChannel(item.channelId, item.channel)));
+      () => allowChannel(item.channelId, item.channel),
+      item.videoId && !/^(RD|PL|OLAK)/.test(item.videoId)
+        ? () => openWithPass('https://www.youtube.com/watch?v=' + item.videoId, item.videoId, item.channelId)
+        : null));
   }
 
   // 학습됨 = 프로파일링·재생 중 판별로 스스로 알아낸 채널
@@ -127,7 +144,7 @@ async function render() {
       } else {
         allowChannel(id, name);
       }
-    }));
+    }, () => openWithPass('https://www.youtube.com/channel/' + id, '', id)));
   }
   if (!entries.length) {
     const li = document.createElement('li');

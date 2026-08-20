@@ -106,3 +106,14 @@ test('시청 페이지 배지 판별이 "인증됨" 같은 다른 배지를 거�
   assert.match(js, /인증\|verified/, '인증 배지를 제외하지 않는다');
   assert.match(js, /aria-label/, 'aria 라벨도 함께 보지 않는다');
 });
+
+test('걸러낸 항목을 눌러 볼 수 있고, 그때는 건너뛰지 않는다', () => {
+  const pj = read('popup/popup.js');
+  assert.match(pj, /openWithPass/, '팝업에 눌러서 보기가 없다');
+  assert.match(pj, /viewPass/, '통행증을 발급하지 않는다');
+  assert.match(pj, /차단은 유지됨/, '차단이 유지된다는 안내가 없다');
+  const c = read('src/content.js');
+  assert.match(c, /function passActive/, '통행증 확인이 없다');
+  assert.match(c, /!passActive\(curV, meta\.channelId\)/, '통행증이 건너뛰기를 막지 않는다');
+  assert.match(c, /10 \* 60 \* 1000/.test(pj) ? /passActive/ : /NEVER/, '통행증에 만료가 없다');
+});

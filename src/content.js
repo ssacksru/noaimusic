@@ -45,7 +45,8 @@
       } catch (e) { /* 한쪽이 없어도 나머지로 동작 */ }
     }
     const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true, useGuess: true });
-    const local = await chrome.storage.local.get({ profiles: {}, profileNames: {} });
+    const local = await chrome.storage.local.get({ profiles: {}, profileNames: {}, viewPass: null });
+    viewPass = local.viewPass;
     const mine = await window.NAM_LISTS.getLists();
     profileNames = local.profileNames;
     enabled = sync.enabled;
@@ -64,6 +65,7 @@
       if (changes.useGuess) { useGuess = changes.useGuess.newValue; touched = true; }
       if (changes.useSeed) { loadState(); return; }
     } else if (area === 'local') {
+      if (changes.viewPass) viewPass = changes.viewPass.newValue;
       if (changes.blocked) { lists.blocked = changes.blocked.newValue || {}; touched = true; }
       if (changes.allowed) { lists.allowed = changes.allowed.newValue || {}; touched = true; }
       if (changes.profiles) { profiles = changes.profiles.newValue || {}; touched = true; }
@@ -330,6 +332,14 @@
   // page.js 가 데이터에서 읽어 보낸 현재 시청 영상 정보 (DOM 보다 정확)
   let watchMeta = null;
 
+  // 팝업에서 "눌러서 보기"로 끊은 10분짜리 통행증 — 차단은 유지하되 이번 재생은 건너뛰지 않는다
+  let viewPass = null;
+  function passActive(videoId, channelId) {
+    if (!viewPass || Date.now() > (viewPass.until || 0)) return false;
+    return (viewPass.videoId && viewPass.videoId === videoId)
+        || (viewPass.channelId && viewPass.channelId === channelId);
+  }
+
   // ── 시청 페이지: AI 판정 시 건너뛰거나 배너 표시 ─────────────────
   function watchBanner() {
     if (!enabled || location.pathname !== '/watch') return;
@@ -365,8 +375,10 @@
     }
 
     // 재생이 시작된 뒤 AI로 판명되면 즉시 다음 정상 영상으로 넘어간다.
-    // (검색에서 눌러 들어온 경우도 포함 — 누르는 건 못 막아도 듣게 두진 않는다)
-    if (v.action === 'block' && autoSkip && labeled && skipToNext(meta, wm)) return;
+    // 단, 팝업에서 "눌러서 보기"로 들어온 경우는 사용자가 의도한 재생이므로 두고 본다.
+    if (v.action === 'block' && autoSkip && labeled
+        && !passActive(curV, meta.channelId)
+        && skipToNext(meta, wm)) return;
     if (!labeled) skipStreak = 0;   // 정상 영상에 도달하면 연쇄 카운터 초기화
 
     const old = document.getElementById('nam-banner');
