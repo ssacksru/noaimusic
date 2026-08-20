@@ -14,6 +14,7 @@ function reasonLabel(reason) {
   else if (base === 'seed') text = '알려진 AI 채널';
   else if (base === 'blocklist') text = '내가 차단한 채널';
   else if (base.startsWith('keyword:')) text = `제목·채널명에 “${base.slice(8)}”`;
+  else if (base.startsWith('mix:')) text = `차단한 채널의 믹스 (${base.slice(4)})`;
   else text = base;
   return skipped ? `${text} · 재생 중 건너뜀` : text;
 }

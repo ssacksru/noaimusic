@@ -130,6 +130,26 @@
     return (Number(m[1]) || 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
   }
 
+  // 믹스·재생목록 카드인가. 누르면 그 채널 음악이 연속 재생되므로 함께 본다.
+  // (RD=믹스/라디오, PL=재생목록, OLAK=앨범. 일반 영상 카드는 대상이 아니다.)
+  function isMixCard(meta) {
+    return /^(RD|PL|OLAK)/.test(meta.videoId || '') || !!meta.isPlaylist;
+  }
+
+  // 채널명이 흔한 일반어면 제목 매칭이 위험하다 — 그런 이름은 쓰지 않는다
+  const GENERIC_NAME = /^(music|musica|musik|playlist|mix|bgm|lofi|jazz|piano|pop|radio|studio|sound|음악|노래|재생목록|플레이리스트|믹스|힐링|카페)$/i;
+
+  function blockedNameIn(names, title) {
+    if (!names || !names.length || !title) return '';
+    const t = title.toLowerCase();
+    for (const n of names) {
+      const name = String(n || '').trim();
+      if (name.length < 4 || GENERIC_NAME.test(name)) continue;
+      if (t.indexOf(name.toLowerCase()) !== -1) return name;
+    }
+    return '';
+  }
+
   function has(map, key) {
     if (!map || !key) return false;
     return map instanceof Set ? map.has(key) : Object.prototype.hasOwnProperty.call(map, key);
@@ -146,6 +166,14 @@
     if (has(lists.allowed, meta.channelId)) return { action: 'pass', reason: 'allowlist' };
     if (has(lists.blocked, meta.channelId)) return { action: 'block', reason: 'blocklist' };
     if (has(lists.seed, meta.channelId)) return { action: 'block', reason: 'seed' };
+
+    // 유튜브 자동생성 "믹스"는 채널 ID 가 없어 채널 차단으로 잡히지 않는다.
+    // 대신 제목에 원본 채널명이 실려 온다("믹스 - [playlist] balcony9 | ...").
+    // 차단한 채널의 믹스를 그대로 두면 눌렀을 때 그 채널 음악이 연속 재생된다(실측 2026-08-20).
+    if (isMixCard(meta)) {
+      const hit = blockedNameIn(lists.blockedNames, title);
+      if (hit) return { action: 'block', reason: 'mix:' + hit };
+    }
 
     // 음악 관문 2단.
     // musicish = 음악 얘기가 나오는가 (AI 증거가 확실할 때 이것만으로 충분 — AI 커버 단일곡은 3분짜리다)

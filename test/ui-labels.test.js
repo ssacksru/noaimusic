@@ -98,3 +98,11 @@ test('AI 배지 판별이 언어에 의존하지 않는다', () => {
   const content = read('src/content.js');
   assert.ok(!/AI로 생성된\|AI-generated/.test(content), 'DOM 판별이 한국어·영어 문구에 묶여 있다');
 });
+
+test('시청 페이지 배지 판별이 "인증됨" 같은 다른 배지를 거른다', () => {
+  // 일반 영상에도 같은 자리에 인증 배지가 온다 (2026-08-20 실측: KBS 방송 영상)
+  const js = read('src/content.js');
+  assert.match(js, /NOT_AI_BADGE/, '비-AI 배지 제외 목록이 없다');
+  assert.match(js, /인증\|verified/, '인증 배지를 제외하지 않는다');
+  assert.match(js, /aria-label/, 'aria 라벨도 함께 보지 않는다');
+});

@@ -152,6 +152,28 @@ test('도구명이 낱말 속에 있으면 걸리지 않는다', () => {
   }
 });
 
+test('차단한 채널의 유튜브 자동생성 믹스도 걸러낸다', () => {
+  // 믹스는 채널 ID 가 없어 채널 차단으로 안 잡힌다. 그대로 두면 눌렀을 때
+  // 그 채널 음악이 연속 재생된다 (2026-08-20 실측: balcony9 를 차단해도 믹스가 남았다).
+  const L = { allowed: {}, blocked: {}, seed: {}, blockedNames: ['balcony9', 'cherry music'] };
+  const mix = (t, v = 'RDabc') => H.evaluate({ title: t, videoId: v, channelId: '', isPlaylist: true }, L);
+  assert.equal(mix('믹스 - [playlist] balcony9 | 숲을 바라보는 통창 공간').action, 'block');
+  assert.equal(mix('믹스 - cherry music 카페 음악').action, 'block');
+  // 관계없는 믹스는 그대로
+  assert.equal(mix('믹스 - 아이유 노래모음').action, 'pass');
+  // 믹스가 아니면 제목에 이름이 있어도 건드리지 않는다
+  assert.equal(H.evaluate({ title: 'balcony9 채널 리뷰', videoId: 'abc12345678',
+    channelId: 'UCother', isPlaylist: false, durationSec: 600 }, L).action, 'pass');
+});
+
+test('흔한 일반어 채널명은 믹스 제목 매칭에 쓰지 않는다', () => {
+  // "음악"·"playlist" 같은 이름으로 매칭하면 정상 믹스가 대량 오탐된다
+  const L = { allowed: {}, blocked: {}, seed: {}, blockedNames: ['음악', 'playlist', 'mix', 'abc'] };
+  const mix = (t) => H.evaluate({ title: t, videoId: 'RDx', channelId: '', isPlaylist: true }, L);
+  assert.equal(mix('믹스 - 잔잔한 음악 모음').action, 'pass');
+  assert.equal(mix('믹스 - chill playlist for study').action, 'pass');
+});
+
 test('목록 우선순위: 허용 > 차단 > 시드 > 휴리스틱', () => {
   const lists = { allowed: { UCA: 1 }, blocked: { UCB: 1 }, seed: { UCS: 1 } };
   assert.equal(ev({ title: 'AI 노래모음', channel: 'x', channelId: 'UCA' }, lists).reason, 'allowlist');

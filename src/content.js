@@ -6,10 +6,27 @@
   let autoSkip = true;
   let lists = { allowed: {}, blocked: {}, seed: {} };
   let profiles = {};   // channelId -> 'ai' | 'ok'
+  let profileNames = {};
   const pending = new Set();
 
   function pushLists() {
-    window.postMessage({ type: 'NAM_LISTS', enabled, lists: { ...lists, blocked: { ...lists.blocked, ...aiProfiles() } } }, window.location.origin);
+    const blocked = { ...lists.blocked, ...aiProfiles() };
+    window.postMessage({
+      type: 'NAM_LISTS', enabled,
+      lists: { ...lists, blocked, blockedNames: blockedNames(blocked) },
+    }, window.location.origin);
+  }
+
+  // 믹스 카드는 채널 ID 가 없어 이름으로만 잡을 수 있다
+  function blockedNames(blocked) {
+    const out = [];
+    for (const id in blocked) {
+      // 학습으로 들어온 항목은 값이 1 이라 이름이 없다 — profileNames 에서 가져온다
+      const v = blocked[id];
+      const n = (typeof v === 'string' && v.trim()) ? v : profileNames[id];
+      if (typeof n === 'string' && n.trim()) out.push(n.trim());
+    }
+    return out.slice(0, 400);
   }
   function aiProfiles() {
     const out = {};
@@ -27,8 +44,9 @@
       } catch (e) { /* 한쪽이 없어도 나머지로 동작 */ }
     }
     const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true });
-    const local = await chrome.storage.local.get({ profiles: {} });
+    const local = await chrome.storage.local.get({ profiles: {}, profileNames: {} });
     const mine = await window.NAM_LISTS.getLists();
+    profileNames = local.profileNames;
     enabled = sync.enabled;
     autoSkip = sync.autoSkip;
     profiles = local.profiles;
@@ -46,6 +64,7 @@
       if (changes.blocked) { lists.blocked = changes.blocked.newValue || {}; touched = true; }
       if (changes.allowed) { lists.allowed = changes.allowed.newValue || {}; touched = true; }
       if (changes.profiles) { profiles = changes.profiles.newValue || {}; touched = true; }
+      if (changes.profileNames) { profileNames = changes.profileNames.newValue || {}; touched = true; }
     }
     if (!touched) return;
     pushLists();
@@ -109,7 +128,8 @@
 
   function sweepDom() {
     if (!enabled) return;
-    const merged = { ...lists, blocked: { ...lists.blocked, ...aiProfiles() } };
+    const b = { ...lists.blocked, ...aiProfiles() };
+    const merged = { ...lists, blocked: b, blockedNames: blockedNames(b) };
     let hidden = 0;
     for (const el of document.querySelectorAll(CARD_SEL)) {
       try {
@@ -169,12 +189,20 @@
   // 데이터 경로(page.js)가 주 신호이고 이건 보조다.
   // 라벨은 언어마다 다르므로(AI·IA·KI·ИИ·एआई·بالذكاء الاصطناعي) 글자에 기대지 않는다 —
   // 이 자리에 배지가 있다는 사실 자체가 신호다(일반 영상은 배지가 아예 없다, 실측 2026-08-20).
+  // 같은 자리에 "인증됨"·"실시간" 같은 다른 배지도 온다(실측 2026-08-20).
+  // AI 공시 배지만 짧은 글자를 갖고, 나머지는 아이콘뿐이라 텍스트가 비어 있다.
+  // 그래도 로케일에 따라 글자가 붙을 수 있으니 알려진 것들은 이름으로도 걸러낸다.
+  const NOT_AI_BADGE = /인증|verified|실시간|\blive\b|자막|subtitle|cc|4k|hd|멤버|member|new|신규/i;
   function youtubeAiBadge() {
     const badges = document.querySelectorAll(
       '#above-the-fold yt-metadata-badge-renderer, #title yt-metadata-badge-renderer');
     for (const el of badges) {
       const text = (el.textContent || '').trim();
-      if (text && text.length <= 24) return true;
+      if (!text || text.length > 24) continue;
+      const aria = el.getAttribute('aria-label')
+        || (el.querySelector('[aria-label]') || {}).getAttribute?.('aria-label') || '';
+      if (NOT_AI_BADGE.test(text) || NOT_AI_BADGE.test(aria)) continue;
+      return true;
     }
     return false;
   }
@@ -271,7 +299,8 @@
       durationSec: 9999, isPlaylist: false,
     };
     if (!meta.title) return;
-    const merged = { ...lists, blocked: { ...lists.blocked, ...aiProfiles() } };
+    const bl = { ...lists.blocked, ...aiProfiles() };
+    const merged = { ...lists, blocked: bl, blockedNames: blockedNames(bl) };
     let v = H.evaluate(meta, merged);
 
     // 유튜브가 직접 AI라고 표시했으면 그 채널을 확정 처리한다 —
