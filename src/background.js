@@ -7,6 +7,17 @@
 // (host 권한이 youtube.com 을 덮으므로 추가 권한은 필요 없다)
 chrome.runtime.onInstalled.addListener(async (details) => {
   try { await chrome.storage.local.set({ installedEvent: { reason: details.reason, at: Date.now() } }); } catch (e) {}
+  if (details.reason === 'update') {
+    // 감지가 넓어진 버전으로 올라오면 '아님' 판정은 다시 확인해야 한다.
+    // (2026-08-21 실사용: 설명란 공시를 못 보던 버전이 AI 채널을 ok 로 캐시)
+    // ai 판정과 사용자의 허용 목록은 그대로 두고, ok 캐시만 비워 재검사를 유도한다.
+    try {
+      const { profiles = {} } = await chrome.storage.local.get('profiles');
+      const kept = {};
+      for (const id in profiles) if (profiles[id] === 'ai') kept[id] = profiles[id];
+      await chrome.storage.local.set({ profiles: kept });
+    } catch (e) { /* 실패해도 동작엔 지장 없음 — 다음 업데이트 때 다시 */ }
+  }
   if (details.reason !== 'install') return;
   try {
     const tabs = await chrome.tabs.query({ url: 'https://www.youtube.com/*' });

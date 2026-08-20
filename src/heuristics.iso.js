@@ -360,7 +360,22 @@
     return null;
   }
 
-  const api = { evaluate, parseDuration, parseViews, filterTree, metaFromItem, firstVideoId, AI_STRONG, MUSIC_STRONG };
+  // 유튜브 AI 공시는 두 자리에 실린다: ① 제목 옆 배지 ② 설명란 "콘텐츠 생성 방식" 섹션.
+  // ②는 배지 없이 이것만 있는 영상이 실존한다(실사용 제보 2026-08-21).
+  // 렌더러 이름 자체가 로케일 무관 신호다 — AI 영상에만 섹션이 존재하고
+  // 정상 영상엔 아예 없다(실측 2026-08-21: AI 1 vs 정상 2 교차 확인).
+  function hasAiDisclosure(data) {
+    try {
+      for (const p of data.engagementPanels || []) {
+        const items = (((p.engagementPanelSectionListRenderer || {}).content || {})
+          .structuredDescriptionContentRenderer || {}).items || [];
+        for (const it of items) if (it && it.howThisWasMadeSectionViewModel) return true;
+      }
+    } catch (e) { /* 데이터 형태가 바뀌면 "없음"으로 — 다른 판별 층이 남아 있다 */ }
+    return false;
+  }
+
+  const api = { evaluate, parseDuration, parseViews, filterTree, metaFromItem, firstVideoId, hasAiDisclosure, AI_STRONG, MUSIC_STRONG };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.NAM_HEURISTICS = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

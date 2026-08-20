@@ -119,7 +119,7 @@ test('시청 페이지 확인에 쿠키를 실어 보낸다', () => {
 test('프로파일링을 페이지 컨텍스트에서 한다', () => {
   // 서비스워커에서 하면 쿠키가 실리지 않아 전부 실패한다
   const c = read('src/content.js');
-  assert.match(c, /NAM_BADGES\.checkVideo/, '페이지에서 직접 확인하지 않는다');
+  assert.match(c, /NAM_BADGES\.checkChannel/, '페이지에서 직접 확인하지 않는다');
   const m = JSON.parse(read('manifest.json'));
   const iso = m.content_scripts.find((x) => x.world !== 'MAIN');
   assert.ok(iso.js.includes('src/badges.js'), '콘텐츠 스크립트에 badges.js 가 없다');
@@ -220,4 +220,21 @@ test('직접 링크로 연 음악 채널도 프로파일링된다', () => {
     '시청 중인 채널의 프로파일링 배선이 사라졌다');
   const p = read('src/page.js');
   assert.match(p, /views,\s*\n\s*nextVideoId/, 'NAM_WATCH 에 조회수가 실리지 않는다 — 추정 규칙이 못 돈다');
+});
+
+test('설명란 공시가 즉시 스킵·학습 양쪽에 배선돼 있다', () => {
+  // 배지만 보면 설명란 공시형 AI 를 놓치고, 놓친 채널이 ok 로 캐시돼 굳는다 (2026-08-21 실사용)
+  assert.match(read('src/page.js'), /hasAiDisclosure\(data\)/, '시청 즉시 스킵 경로에 공시 감지가 없다');
+  assert.match(read('src/badges.js'), /hasAiDisclosure\(/, '학습 경로에 공시 감지가 없다');
+  const b = read('src/background.js');
+  assert.match(b, /reason === 'update'/, '업데이트 시 ok 캐시 재검사가 없다');
+  assert.match(b, /profiles\[id\] === 'ai'/, 'ai 판정까지 지우면 안 된다');
+});
+
+test('팝업에서 지금 보는 채널을 바로 차단할 수 있다', () => {
+  // 공시도 정황 신호도 없는 AI 채널(2026-08-21 제보)은 수동 차단이 유일한 수단이다
+  assert.match(read('src/content.js'), /NAM_GET_WATCH/, '콘텐츠 스크립트 응답이 없다');
+  const p = read('popup/popup.js');
+  assert.match(p, /NAM_GET_WATCH/, '팝업 질의가 없다');
+  assert.match(p, /\^UC\[\\w-\]\{22\}\$/, '채널 ID 형식 검증이 없다');
 });

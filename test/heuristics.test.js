@@ -243,3 +243,25 @@ test('filterTree: 깨진 구조에도 예외 없이 동작', () => {
   const weird = { a: [null, 1, 'str', { videoRenderer: {} }, { lockupViewModel: { metadata: 42 } }], b: null };
   assert.doesNotThrow(() => H.filterTree(weird, L));
 });
+
+test('설명란 "콘텐츠 생성 방식" 공시를 감지한다', () => {
+  // 제목 옆 배지 없이 설명란 공시만 있는 AI 영상이 실존한다 (2026-08-21 실사용 제보:
+  // "Piano music for relaxing" — 콘텐츠 생성 방식 → AI로 제작)
+  const withDisclosure = {
+    engagementPanels: [
+      { engagementPanelSectionListRenderer: { content: {} } },
+      { engagementPanelSectionListRenderer: { content: { structuredDescriptionContentRenderer: {
+        items: [{ videoDescriptionHeaderRenderer: {} },
+                { howThisWasMadeSectionViewModel: { sectionTitle: { content: '콘텐츠 생성 방식' } } }],
+      } } } },
+    ],
+  };
+  assert.equal(H.hasAiDisclosure(withDisclosure), true);
+  // 정상 영상엔 섹션 자체가 없다 (실측: 인기 MV·저조회 일반 음악 모두 없음)
+  const without = { engagementPanels: [{ engagementPanelSectionListRenderer: { content: {
+    structuredDescriptionContentRenderer: { items: [{ videoDescriptionHeaderRenderer: {} }] },
+  } } }] };
+  assert.equal(H.hasAiDisclosure(without), false);
+  assert.equal(H.hasAiDisclosure({}), false);
+  assert.equal(H.hasAiDisclosure(null) || false, false);
+});

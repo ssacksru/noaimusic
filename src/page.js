@@ -59,11 +59,12 @@
       const pri = (contents.find((x) => x.videoPrimaryInfoRenderer) || {}).videoPrimaryInfoRenderer;
       const sec = (contents.find((x) => x.videoSecondaryInfoRenderer) || {}).videoSecondaryInfoRenderer;
       if (!pri && !sec) return;
-      // AI 공시 배지는 라벨이 언어마다 다르므로(AI·IA·KI·ИИ…) 아이콘 종류로 본다
+      // AI 공시 배지는 라벨이 언어마다 다르므로(AI·IA·KI·ИИ…) 아이콘 종류로 본다.
+      // 배지 없이 설명란 공시만 있는 영상도 있다 — 둘 다 본다.
       const aiLabeled = ((pri && pri.badges) || []).some((b) => {
         const r = b.metadataBadgeRenderer;
         return r && r.icon && r.icon.iconType === 'INFO' && r.style === 'BADGE_STYLE_TYPE_SIMPLE';
-      });
+      }) || H.hasAiDisclosure(data);
       const owner = sec && sec.owner && sec.owner.videoOwnerRenderer;
       const be = owner && owner.navigationEndpoint && owner.navigationEndpoint.browseEndpoint;
       const runs = (pri && pri.title && pri.title.runs) || [];

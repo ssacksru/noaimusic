@@ -176,6 +176,28 @@ for (const b of document.querySelectorAll('.tab')) {
   };
 }
 
+// 지금 보는 채널 — 유튜브 공시도 정황 신호도 없는 AI 채널(실사용 제보 2026-08-21)은
+// 자동으로 못 잡는다. 보고 있는 사람이 가장 정확한 판별자다 — 그 판단을 원클릭으로 받는다.
+async function renderNow() {
+  try {
+    const [t] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!t || !/^https:\/\/www\.youtube\.com\/watch/.test(t.url || '')) return;
+    const meta = await chrome.tabs.sendMessage(t.id, { type: 'NAM_GET_WATCH' });
+    if (!meta || !/^UC[\w-]{22}$/.test(meta.channelId || '')) return;
+    const mine = await NAM_LISTS.getLists();
+    const { profiles } = await chrome.storage.local.get({ profiles: {} });
+    if (mine.blocked[meta.channelId] || profiles[meta.channelId] === 'ai') return;
+    $('now').style.display = '';
+    $('now-name').textContent = meta.channel || meta.channelId;
+    $('now-block').onclick = async () => {
+      await NAM_LISTS.setChannel(meta.channelId, meta.channel, 'blocked');
+      $('now').style.display = 'none';
+      render();
+    };
+  } catch (e) { /* 시청 페이지가 아니거나 스크립트 미주입 — 조용히 숨긴다 */ }
+}
+renderNow();
+
 // 번들된 목록 개수는 파일에서 직접 읽어 화면과 데이터가 어긋나지 않게 한다
 (async () => {
   let n = 0;

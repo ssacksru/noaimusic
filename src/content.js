@@ -109,6 +109,19 @@
     }
   });
 
+  // 팝업이 "지금 보는 채널"을 물어본다 — 수동 차단 버튼용
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!msg || msg.type !== 'NAM_GET_WATCH' || location.pathname !== '/watch') return;
+    const curV = new URLSearchParams(location.search).get('v');
+    const wm = watchMeta && (!watchMeta.videoId || !curV || watchMeta.videoId === curV) ? watchMeta : null;
+    const chanEl = document.querySelector('ytd-video-owner-renderer a[href], #owner a[href]');
+    const m = chanEl && (chanEl.getAttribute('href') || '').match(/\/channel\/(UC[\w-]+)/);
+    sendResponse({
+      channel: (wm && wm.channel) || (chanEl ? chanEl.textContent.trim() : ''),
+      channelId: (wm && wm.channelId) || (m ? m[1] : ''),
+    });
+  });
+
   // ── DOM 안전망: 데이터 필터가 놓친 카드 숨김 + 프로파일링 후보 수집 ──
   const CARD_SEL = 'ytd-rich-item-renderer, ytd-video-renderer, ytd-compact-video-renderer, ytd-playlist-renderer, ytd-compact-playlist-renderer, ytd-radio-renderer, ytd-compact-radio-renderer, yt-lockup-view-model';
 
@@ -232,7 +245,7 @@
       if (inFlight.has(channelId)) continue;
       inFlight.add(channelId);
 
-      window.NAM_BADGES.checkVideo(job.videoId, useGuess, job.views).then((res) => {
+      window.NAM_BADGES.checkChannel(channelId, job.videoId, useGuess, job.views).then((res) => {
         inFlight.delete(channelId);
         if (res && res.verdict) {
           failStreak = 0;

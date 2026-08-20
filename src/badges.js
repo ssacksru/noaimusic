@@ -71,6 +71,12 @@
       const badges = watchBadges(html);
       if (badges === null) return null;
       if (badges.some(isAiBadge)) return { verdict: 'ai', reason: 'label' };
+      // 배지 없이 설명란 "콘텐츠 생성 방식" 공시만 있는 영상도 있다(실사용 제보 2026-08-21)
+      const H = (typeof module !== 'undefined' && module.exports)
+        ? require('./heuristics.js') : root.NAM_HEURISTICS;
+      if (H && H.hasAiDisclosure(parseInitialData(html) || {})) {
+        return { verdict: 'ai', reason: 'label' };
+      }
       if (useGuess && views != null
           && views < COMBO_VIEWS_MAX && hashtagCount(html) >= COMBO_HASHTAG_MIN) {
         return { verdict: 'ai', reason: 'hashtags' };
@@ -79,7 +85,35 @@
     } catch (e) { return null; }
   }
 
-  const api = { parseInitialData, watchBadges, isAiBadge, checkVideo, hashtagCount };
+  // 채널 단위 확인 — 공시는 영상마다 들쭉날쭉 붙는다(실측 2026-08-21: 한 AI 채널의
+  // 최근 8개 중 4개만 설명란 공시). 입구 영상이 깨끗해도 채널의 다른 영상을
+  // 몇 개 더 보고 나서야 '아님'으로 캐시한다. RSS 는 공개 XML 이라 쿠키가 필요 없다.
+  async function channelVideoIds(channelId) {
+    const r = await fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId);
+    if (!r.ok) return null;
+    const xml = await r.text();
+    return [...xml.matchAll(/<yt:videoId>([\w-]{11})<\/yt:videoId>/g)].map((m) => m[1]);
+  }
+
+  async function checkChannel(channelId, videoId, useGuess, views) {
+    const first = await checkVideo(videoId, useGuess, views);
+    if (!first || first.verdict === 'ai') return first;
+    let ids;
+    try { ids = await channelVideoIds(channelId); } catch (e) { return null; }
+    if (ids === null) return null;
+    ids = ids.filter((v) => v !== videoId);
+    // 최신·중간·오래된 쪽에서 하나씩 — 미공시가 몰린 구간에 다 걸리지 않게 흩어 본다
+    const picks = [...new Set([ids[0], ids[Math.floor(ids.length / 2)], ids[ids.length - 1]])]
+      .filter(Boolean);
+    for (const v of picks) {
+      const r = await checkVideo(v, false, null);
+      if (r === null) return null;   // 확인 실패를 '아님'으로 굳히지 않는다
+      if (r.verdict === 'ai') return r;
+    }
+    return first;
+  }
+
+  const api = { parseInitialData, watchBadges, isAiBadge, checkVideo, checkChannel, channelVideoIds, hashtagCount };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.NAM_BADGES = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
