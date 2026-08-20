@@ -24,6 +24,15 @@
       '\\bremix\\b', '\\binstrumental\\b', '연주곡', '\\bchill\\b', '\\brelax(ing)?\\b',
       '힐링', '수면', '태교', '카페', '\\bcafe\\b', '\\bccm\\b', '찬양', '캐롤', '\\bcarols?\\b',
       '\\bedm\\b', '\\bbeats?\\b', '\\bhits\\b', '\\bradio\\b',
+      // 영어 장르·형식어 — 한국어 목록만으로는 해외 AI 음악을 음악으로 인식하지 못했다
+      // (실측 2026-08-20: "27 Minutes of AI Hip-Hop — 10 Suno Tracks" 가 통과했다)
+      'hip[\\s\\-\\u2010-\\u2015]?hop', '\\brap\\b', '\\brock\\b', '\\bsoul\\b', '\\bfunk\\b',
+      '\\bdisco\\b', '\\bhouse\\s+music\\b', '\\btechno\\b', '\\btrance\\b', '\\btrap\\b',
+      '\\bambient\\b', '\\bacoustic\\b', '\\borchestral?\\b', '\\bsymphony\\b', '\\bopera\\b',
+      '\\btracks?\\b', '\\btunes?\\b', '\\bmelod(y|ies)\\b', '\\bvocals?\\b', '\\bsinger\\b',
+      '\\bband\\b', '\\balbum\\b', '\\bsoundtrack\\b', '\\bmashup\\b', '\\bkaraoke\\b',
+      '\\bgroove\\b', '\\bvibes?\\b', '\\bbossa\\b', '\\bblues\\b', '\\bcountry\\s+music\\b',
+      '\\breggae\\b', '\\bsynthwave\\b', '\\bcity\\s*pop\\b',
     ].join('|'),
     'i'
   );
@@ -49,10 +58,12 @@
   const AI_BARE = /(^|[^A-Za-z])A\.?I\.?(?![A-Za-z])/;
 
   // AI를 부정하는 표기 — "(NO AI)" 처럼 AI가 아님을 강조한 영상을 차단하면 정반대다.
+  // 단어 시작 경계가 없으면 "Su(no AI)" 처럼 낱말 속 조각이 걸린다.
+  // Suno 는 가장 흔한 AI 음악 생성기라, 그 오탐 하나로 대량의 AI 음악을 놓쳤다(실측 2026-08-20).
   const AI_NEGATED = new RegExp(
     [
-      'no[\\s\\-]*a\\.?i\\.?\\b', '\\bnon[\\s\\-]*a\\.?i\\.?\\b', 'a\\.?i\\.?[\\s\\-]*free\\b',
-      'without\\s+a\\.?i\\.?', 'ai\\s*(아님|아니|없음|없이|미사용|안\\s*씀|배제)', 'ai\\s*x\\b',
+      '\\bno[\\s\\-]*a\\.?i\\.?\\b', '\\bnon[\\s\\-]*a\\.?i\\.?\\b', '\\ba\\.?i\\.?[\\s\\-]*free\\b',
+      '\\bwithout\\s+a\\.?i\\.?', 'ai\\s*(아님|아니|없음|없이|미사용|안\\s*씀|배제)', '\\bai\\s*x\\b',
       '사람이\\s*(만든|부른|작곡)', '실제\\s*(가수|사람)',
     ].join('|'),
     'i'

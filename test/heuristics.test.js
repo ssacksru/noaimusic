@@ -47,6 +47,32 @@ test('오탐 가드: AI 철자 함정', () => {
   assert.equal(ev({ title: 'Ai Otsuka - Sakuranbo MV', channel: 'avex', durationSec: 240 }).reason, 'not-music');
 });
 
+test('부정 표기가 낱말 속 조각에 걸리지 않는다', () => {
+  // "Su(no AI)" 처럼 낱말 안의 "no ai" 가 부정 표기로 오인되면
+  // 가장 흔한 AI 음악 생성기(Suno) 를 통째로 놓친다 (2026-08-20 영어 UI 실측).
+  assert.equal(ev({ title: 'Suno AI Music Reggae Playlist', channel: '' }).action, 'block');
+  assert.equal(ev({ title: 'Piano AI cover playlist', channel: '' }).action, 'block');
+  assert.equal(ev({ title: 'Techno AI generated mix', channel: '' }).action, 'block');
+});
+
+test('영어 장르어도 음악으로 인식한다', () => {
+  // 한국어 어휘만으로는 해외 AI 음악을 음악으로 보지 못해 통째로 새어나갔다 (2026-08-20 실측).
+  assert.equal(ev({ title: '27 Minutes of AI Hip‑Hop — 10 Suno Tracks with vocals', channel: '' }).action, 'block');
+  assert.equal(ev({ title: 'AI generated ambient tracks', channel: '' }).action, 'block');
+  assert.equal(ev({ title: 'Chill reggae vibes made with AI', channel: '' }).action, 'block');
+  // 음악어가 있어도 AI 신호가 없으면 그대로 둔다
+  assert.equal(ev({ title: 'Best rock band live concert 2026', channel: '' }).reason, 'music-clean');
+  // 음악과 무관한 영상은 AI 가 나와도 건드리지 않는다
+  assert.equal(ev({ title: 'NBA highlights - AI referee controversy', channel: '' }).reason, 'not-music');
+});
+
+test('진짜 부정 표기는 그대로 통과시킨다', () => {
+  for (const t of ['(NO AI) BGM 모음 플레이리스트', 'NON-AI acoustic playlist',
+                   'AI-free jazz collection', 'Without AI - real musicians only playlist']) {
+    assert.equal(ev({ title: t, channel: '' }).reason, 'ai-negated', t);
+  }
+});
+
 test('목록 우선순위: 허용 > 차단 > 시드 > 휴리스틱', () => {
   const lists = { allowed: { UCA: 1 }, blocked: { UCB: 1 }, seed: { UCS: 1 } };
   assert.equal(ev({ title: 'AI 노래모음', channel: 'x', channelId: 'UCA' }, lists).reason, 'allowlist');
