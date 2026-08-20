@@ -74,3 +74,24 @@ test('목록 모듈이 필요한 곳에 모두 실린다', () => {
   const main = m.content_scripts.find((c) => c.world === 'MAIN');
   assert.ok(!main.js.includes('src/lists.js'), 'MAIN world 에는 필요 없다');
 });
+
+test('빌드 스크립트가 파일 목록을 manifest 에서 유도한다', () => {
+  // 손으로 적으면 새 파일을 빠뜨린다 — 실제로 lists.js 가 zip 에서 누락된 적이 있다(2026-08-20).
+  const sh = read('tools/build.sh');
+  assert.match(sh, /require\("\.\/manifest\.json"\)/, 'manifest 를 읽지 않는다');
+  assert.ok(!/src\/heuristics\.js src\/|zip -qr .* src\/page\.js/.test(sh),
+    '빌드 스크립트에 파일 경로가 하드코딩되어 있다');
+  assert.match(sh, /default_popup/, '팝업이 부르는 파일을 따라가지 않는다');
+});
+
+test('팝업 HTML 이 부르는 로컬 파일이 모두 존재한다', () => {
+  const p = JSON.parse(read('manifest.json')).action.default_popup;
+  const html = read(p);
+  const dir = path.dirname(path.join(root, p));
+  const refs = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1])
+    .filter((u) => !/^https?:|^data:/.test(u));
+  assert.ok(refs.length >= 2, '팝업이 부르는 파일을 못 찾았다');
+  for (const u of refs) {
+    assert.ok(fs.existsSync(path.join(dir, u)), `팝업이 없는 파일을 부른다: ${u}`);
+  }
+});
