@@ -83,11 +83,17 @@
       chrome.runtime.sendMessage({ type: 'NAM_STATS', items: e.data.items }).catch(() => {});
     } else if (e.data.type === 'NAM_CANDIDATES') {
       for (const c of e.data.items) {
+        if (!/^UC[\w-]{22}$/.test(c.channelId || '')) continue;   // 위조 방지
         if (!(c.channelId in profiles)) queueProfile(c.channelId, c.videoId, c.channel, c.views);
       }
     } else if (e.data.type === 'NAM_IDMAP') {
       Object.assign(videoChannel, e.data.map);
     } else if (e.data.type === 'NAM_WATCH') {
+      // MAIN world 메시지는 페이지의 아무 스크립트나 위조할 수 있다.
+      // 현재 보고 있는 영상에 대한 것만 받고, 채널 ID 형식을 확인한다.
+      const cur = new URLSearchParams(location.search).get('v');
+      if (e.data.videoId && cur && e.data.videoId !== cur) return;
+      if (e.data.channelId && !/^UC[\w-]{22}$/.test(e.data.channelId)) return;
       watchMeta = e.data;
       schedule();
     }

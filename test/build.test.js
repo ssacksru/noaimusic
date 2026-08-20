@@ -178,3 +178,20 @@ test('학습 순서를 조회수로 정한다', () => {
   assert.match(c, /views/, '조회수를 쓰지 않는다');
   assert.match(read('src/heuristics.js'), /function parseViews/, '조회수 파싱이 없다');
 });
+
+test('보안 회귀 가드', () => {
+  // 스토어 심사 결격 사유가 되살아나면 여기서 잡는다 (docs/store-review.md)
+  const all = ['src/heuristics.js','src/page.js','src/content.js','src/background.js',
+               'src/badges.js','src/lists.js','popup/popup.js'].map(read).join('\n');
+  assert.ok(!/\beval\s*\(|new Function\(|document\.write\(/.test(all), '원격코드/동적실행 패턴 유입');
+  const urls = [...all.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1]);
+  const outside = urls.filter((h) => !/(^|\.)youtube\.com$/.test(h) && h !== 'souloverai.com' && h !== 'bit.ly');
+  assert.deepEqual([...new Set(outside)], [], 'youtube.com 밖으로 나가는 요청이 생겼다');
+  const m = JSON.parse(read('manifest.json'));
+  assert.equal(m.minimum_chrome_version, '111', 'world:MAIN 요구 버전 명시가 사라졌다');
+  assert.ok(!m.externally_connectable, '웹페이지 접근 통로가 열렸다');
+  assert.deepEqual(m.permissions, ['storage'], '권한이 늘었다 — 스토어 재심사·경고 유발');
+  // MAIN world 발 메시지 검증
+  const c = read('src/content.js');
+  assert.match(c, /\^UC\[\\w-\]\{22\}\$/, '채널 ID 형식 검증이 사라졌다');
+});

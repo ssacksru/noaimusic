@@ -93,6 +93,9 @@ async function rememberName(channelId, name) {
 
 // 시청 페이지에서 content script 가 배지를 직접 본 경우 — 즉시 채널을 AI로 확정한다
 async function markChannel(channelId, verdict, channelName, why) {
+  // 형식이 어긋난 ID 는 저장하지 않는다 (메시지 위조·버그 방어)
+  if (!/^UC[\w-]{22}$/.test(channelId || '')) return null;
+  if (verdict !== 'ai' && verdict !== 'ok') return null;
   await rememberName(channelId, channelName);
   if (why) {
     const { profileWhy } = await chrome.storage.local.get({ profileWhy: {} });

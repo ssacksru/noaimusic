@@ -65,5 +65,6 @@
         "https://www.youtube.com/*"
       ]
     }
-  ]
+  ],
+  "minimum_chrome_version": "111"
 }
