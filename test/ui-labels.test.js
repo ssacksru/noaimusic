@@ -54,3 +54,25 @@ test('팝업이 참조하는 요소 id 가 HTML 에 모두 있다', () => {
   }
   assert.ok(ids.size >= 8, '검사한 id 가 너무 적다 — 정규식이 깨졌는지 확인하라');
 });
+
+test('건너뛴 뒤 알림(토스트)이 갖춰져 있다', () => {
+  const js = read('src/content.js');
+  const css = read('src/content.css');
+  assert.match(js, /nam-toast/, '토스트를 만드는 코드가 없다');
+  assert.match(js, /건너뛰었습니다/, '토스트 문구가 한국어가 아니다');
+  assert.match(js, /되돌리기/, '되돌리기 버튼이 없다');
+  assert.match(js, /document\.fullscreenElement/, '전체화면에서 토스트를 막는 처리가 없다');
+  // 떠나는 페이지에서 소비하지 않도록 하는 가드 (없으면 토스트가 보이지 않는다)
+  assert.match(js, /info\.v === new URLSearchParams/, '도착 페이지 판별 가드가 없다');
+  assert.match(css, /#nam-toast\s*\{/, '토스트 스타일이 없다');
+  assert.match(css, /position:\s*fixed/, '토스트가 고정 위치가 아니다');
+});
+
+test('페이지에 주입하는 요소는 nam- 접두사를 쓴다', () => {
+  const js = read('src/content.js');
+  const ids = [...js.matchAll(/\.id = '([\w-]+)'/g)].map((m) => m[1]);
+  assert.ok(ids.length >= 2, '주입 요소를 못 찾았다');
+  for (const id of ids) {
+    assert.ok(id.startsWith('nam-'), `유튜브와 충돌할 수 있는 id: ${id}`);
+  }
+});

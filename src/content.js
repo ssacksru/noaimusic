@@ -193,11 +193,54 @@
       type: 'NAM_STATS',
       items: [{ videoId: vid, title: meta.title, channel: meta.channel, channelId: meta.channelId, reason: 'skipped:youtube-ai-label' }],
     }).catch(() => {});
+    // 왜 다른 영상이 나왔는지 알려준다. 넘어간 뒤 페이지에 띄우려고 저장해 둔다.
+    try {
+      sessionStorage.setItem('nam-skipped', JSON.stringify({
+        v: vid, channel: meta.channel, channelId: meta.channelId, at: Date.now(),
+      }));
+    } catch (e) { /* 저장 실패해도 이동은 계속한다 */ }
 
     if (useBtn) { btn.click(); return true; }
     if (nextId) { location.href = '/watch?v=' + nextId; return true; }
     location.href = link.getAttribute('href');
     return true;
+  }
+
+  // 건너뛴 직후 도착한 페이지에서 조용히 알린다 (재생을 방해하지 않는다)
+  function skipToast() {
+    let info;
+    try {
+      const raw = sessionStorage.getItem('nam-skipped');
+      if (!raw) return;
+      info = JSON.parse(raw);
+    } catch (e) { return; }
+    if (!info) return;
+    // 아직 떠나는 페이지에 있으면 소비하지 않는다 — 도착한 곳에서 띄워야 한다
+    if (info.v === new URLSearchParams(location.search).get('v')) return;
+    try { sessionStorage.removeItem('nam-skipped'); } catch (e) {}
+    if (Date.now() - info.at > 15000 || document.getElementById('nam-toast')) return;
+    // 전체화면에서는 재생 컨트롤을 가리므로 띄우지 않는다
+    if (document.fullscreenElement) return;
+
+    const el = document.createElement('div');
+    el.id = 'nam-toast';
+    const msg = document.createElement('span');
+    msg.textContent = info.channel ? `AI 음악을 건너뛰었습니다 · ${info.channel}` : 'AI 음악을 건너뛰었습니다';
+    el.append(msg);
+    if (info.channelId && info.v) {
+      const undo = document.createElement('button');
+      undo.textContent = '되돌리기';
+      undo.onclick = async () => {
+        const { allowed } = await chrome.storage.sync.get({ allowed: {} });
+        allowed[info.channelId] = info.channel || info.channelId;
+        await chrome.storage.sync.set({ allowed });
+        chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: info.channelId, verdict: 'ok', channel: info.channel }).catch(() => {});
+        location.href = '/watch?v=' + info.v;
+      };
+      el.append(undo);
+    }
+    document.body.append(el);
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 400); }, 6000);
   }
 
   // page.js 가 데이터에서 읽어 보낸 현재 시청 영상 정보 (DOM 보다 정확)
@@ -273,7 +316,8 @@
     scheduled = true;
     requestAnimationFrame(() => { scheduled = false;
       try { sweepDom(); } catch (e) {}
-      try { watchBanner(); } catch (e) {} });
+      try { watchBanner(); } catch (e) {}
+      try { skipToast(); } catch (e) {} });
   }
 
   loadState().then(() => {
