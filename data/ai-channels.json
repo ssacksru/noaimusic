@@ -1,6 +1,6 @@
 {
 "source": "YouTube 자체 AI 공시 배지(videoPrimaryInfoRenderer.badges) 기반 수집",
-"method": "한국어·영어 음악 검색어 227종 → 상위 결과 영상 1365편의 시청 페이지에서 유튜브 AI 라벨 확인",
+"method": "한국어·영어 음악 검색어 247종 → 상위 결과 영상 1421편의 시청 페이지에서 유튜브 AI 공시 배지 확인",
 "collected": "2026-08-20",
 "note": "유튜브가 직접 AI로 표시한 채널만 등재. 추측·휴리스틱 판정은 포함하지 않는다.",
 "channels": {
@@ -210,6 +210,10 @@
 "UCLrfFNBzPPQrzUJgYwTc91Q": "Afterglow Loop",
 "UCtIoQIJ-2KCxJ0Es8RUJghw": "OFFGRID",
 "UC3ZSGN3MCTzm1H3CPdk1-SA": "BTSost",
-"UC0S7sQOmWLSNU8IjZJhufyQ": "1시간 힐링 음악 1 Hour Healing Music"
+"UC0S7sQOmWLSNU8IjZJhufyQ": "1시간 힐링 음악 1 Hour Healing Music",
+"UCS5Lv7kjBsfhNL0oRT0_M7g": "𝐅𝐞𝐞𝐥𝐿𝐲𝐧",
+"UCa509VFvFL9XQrzT1fS0EgA": "tillandtill",
+"UCxsrynPD500PWeYjcPmUjJg": "modululu",
+"UCivXLz0yiJFzxu2oDiTAZ0g": "Kokoro Sound"
 }
 }

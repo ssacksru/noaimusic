@@ -55,8 +55,11 @@
       const pri = (contents.find((x) => x.videoPrimaryInfoRenderer) || {}).videoPrimaryInfoRenderer;
       const sec = (contents.find((x) => x.videoSecondaryInfoRenderer) || {}).videoSecondaryInfoRenderer;
       if (!pri && !sec) return;
-      const labels = ((pri && pri.badges) || [])
-        .map((b) => b.metadataBadgeRenderer && b.metadataBadgeRenderer.label).filter(Boolean);
+      // AI 공시 배지는 라벨이 언어마다 다르므로(AI·IA·KI·ИИ…) 아이콘 종류로 본다
+      const aiLabeled = ((pri && pri.badges) || []).some((b) => {
+        const r = b.metadataBadgeRenderer;
+        return r && r.icon && r.icon.iconType === 'INFO' && r.style === 'BADGE_STYLE_TYPE_SIMPLE';
+      });
       const owner = sec && sec.owner && sec.owner.videoOwnerRenderer;
       const be = owner && owner.navigationEndpoint && owner.navigationEndpoint.browseEndpoint;
       const runs = (pri && pri.title && pri.title.runs) || [];
@@ -71,7 +74,7 @@
         channelId: (be && be.browseId) || '',
         channel: (owner && owner.title && owner.title.runs && owner.title.runs[0] && owner.title.runs[0].text) || '',
         title: runs.map((r) => r.text || '').join(''),
-        aiLabeled: labels.some((l) => /^AI$/i.test(l)),
+        aiLabeled,
       });
     } catch (e) { /* 시청 메타 추출 실패는 무시 */ }
   }

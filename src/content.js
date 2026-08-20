@@ -165,12 +165,16 @@
     }
   }
 
-  // 유튜브가 제목 아래에 직접 붙이는 AI 공시 배지 ("AI: AI로 생성된 콘텐츠")
+  // 유튜브가 제목 아래에 직접 붙이는 AI 공시 배지.
+  // 데이터 경로(page.js)가 주 신호이고 이건 보조다.
+  // 라벨은 언어마다 다르므로(AI·IA·KI·ИИ·एआई·بالذكاء الاصطناعي) 글자에 기대지 않는다 —
+  // 이 자리에 배지가 있다는 사실 자체가 신호다(일반 영상은 배지가 아예 없다, 실측 2026-08-20).
   function youtubeAiBadge() {
-    for (const el of document.querySelectorAll('#above-the-fold yt-metadata-badge-renderer, #title yt-metadata-badge-renderer')) {
-      const aria = el.getAttribute('aria-label') || (el.querySelector('[aria-label]') || {}).ariaLabel || '';
-      if (/AI로 생성된|AI-generated|합성된 콘텐츠/i.test(aria)) return true;
-      if (/^AI$/i.test((el.textContent || '').trim())) return true;
+    const badges = document.querySelectorAll(
+      '#above-the-fold yt-metadata-badge-renderer, #title yt-metadata-badge-renderer');
+    for (const el of badges) {
+      const text = (el.textContent || '').trim();
+      if (text && text.length <= 24) return true;
     }
     return false;
   }

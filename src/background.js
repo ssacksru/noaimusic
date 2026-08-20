@@ -94,10 +94,10 @@ function parseInitialData(html) {
   } catch (e) { return null; }
 }
 
-// 시청 페이지에서 유튜브가 붙인 배지 라벨을 꺼낸다 (AI 공시면 ["AI"]).
+// 시청 페이지에서 유튜브가 붙인 배지를 꺼낸다.
 // 페이지를 읽지 못했으면 null — "배지 없음"([])과 반드시 구분해야 한다.
 // 그러지 않으면 네트워크 실패가 곧 "AI 아님" 으로 굳어버린다.
-function watchBadgeLabels(html) {
+function watchBadges(html) {
   const d = parseInitialData(html);
   if (!d) return null;
   try {
@@ -105,9 +105,21 @@ function watchBadgeLabels(html) {
     const pri = contents.find((x) => x.videoPrimaryInfoRenderer);
     if (!pri) return null;
     return (pri.videoPrimaryInfoRenderer.badges || [])
-      .map((b) => b.metadataBadgeRenderer && b.metadataBadgeRenderer.label)
+      .map((b) => b.metadataBadgeRenderer)
       .filter(Boolean);
   } catch (e) { return null; }
+}
+
+// AI 공시 배지인가. 라벨은 언어마다 다르다(AI·IA·KI·ИИ·एआई·بالذكاء الاصطناعي).
+// 아이콘 종류는 모든 로케일에서 같고, 일반 영상은 이 자리에 배지가 아예 없다(실측 2026-08-20).
+function isAiBadge(b) {
+  return !!b && b.icon && b.icon.iconType === 'INFO' && b.style === 'BADGE_STYLE_TYPE_SIMPLE';
+}
+
+// 예전 이름 — 수집기와 테스트가 라벨 목록을 쓴다
+function watchBadgeLabels(html) {
+  const badges = watchBadges(html);
+  return badges === null ? null : badges.map((b) => b.label).filter(Boolean);
 }
 
 async function getText(url) {
@@ -142,9 +154,9 @@ async function profileChannel(channelId, sampleVideoId, channelName) {
         .map((x) => x.slice(11, -1)))].slice(0, 2);
     }
     for (const id of ids) {
-      const labels = watchBadgeLabels(await getText(`https://www.youtube.com/watch?v=${id}`));
-      if (!labels) continue;                       // 못 읽은 페이지는 근거가 아니다
-      if (labels.some((l) => /^AI$/i.test(l))) { verdict = 'ai'; break; }
+      const badges = watchBadges(await getText(`https://www.youtube.com/watch?v=${id}`));
+      if (!badges) continue;                       // 못 읽은 페이지는 근거가 아니다
+      if (badges.some(isAiBadge)) { verdict = 'ai'; break; }
       verdict = 'ok';                              // 확인했고 공시가 없었다
     }
   } catch (e) {

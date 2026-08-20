@@ -84,11 +84,12 @@ const save = async (state) => fs.writeFileSync(OUT, JSON.stringify(state));
           (async () => {
             try {
               const html = await (await fetch('https://www.youtube.com/watch?v=${it.v}', { credentials:'omit' })).text();
-              return JSON.stringify({ badges: watchBadgeLabels(html) });
+              const bs = watchBadges(html);
+              return JSON.stringify({ ai: bs === null ? null : bs.some(isAiBadge) });
             } catch (e) { return JSON.stringify({ err: String(e.message || e).slice(0, 60) }); }
           })()
         `));
-        badges = r.err ? null : r.badges;
+        badges = r.err ? null : r.ai;
       } catch (e) { badges = null; }
 
       if (badges === null) {           // 판정 불가 — 기록하지 않고 다음에 다시 본다
@@ -100,7 +101,7 @@ const save = async (state) => fs.writeFileSync(OUT, JSON.stringify(state));
       failed = 0;
       state.checkedVideos[it.v] = 1;
       state.stats.videos++;
-      if (badges.some((l) => /^AI$/i.test(l))) {
+      if (badges === true) {
         state.channels[it.cid] = it.ch || it.cid;
         state.stats.ai++; aiHere++;
       }
