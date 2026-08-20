@@ -214,7 +214,7 @@
       if (inFlight.has(channelId)) continue;
       inFlight.add(channelId);
 
-      window.NAM_BADGES.checkVideo(job.videoId, useGuess).then((res) => {
+      window.NAM_BADGES.checkVideo(job.videoId, useGuess, job.views).then((res) => {
         inFlight.delete(channelId);
         if (res && res.verdict) {
           failStreak = 0;

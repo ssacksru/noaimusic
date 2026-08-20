@@ -31,10 +31,18 @@
     return !!b && b.icon && b.icon.iconType === 'INFO' && b.style === 'BADGE_STYLE_TYPE_SIMPLE';
   }
 
-  // 설명글의 해시태그 수 — 배지가 없을 때 쓰는 보조 신호.
-  // 실측(2026-08-20, AI 42개 vs 사람 플레이리스트 60개): 22개 이상이면 검출 31% · 오탐 2%.
-  // 유튜브 공시와 달리 이건 추정이므로 근거를 구분해 남긴다.
+  // 배지가 없을 때 쓰는 추정 신호 — 조회수와 해시태그의 조합.
+  //
+  // 실측(2026-08-20, AI 44 vs 사람 170중 126 — 무명 창작자 66명 포함):
+  //   조회수 3천 미만 + 해시태그 8개 이상 → 검출 39% · 오탐 0.8% · 정확도 94%
+  //   (해시태그 22개 단독은 검출 27% · 오탐 2.4% — 이 조합이 둘 다 낫다)
+  // 원리: AI 는 대량으로 찍어내지만 아무도 듣지 않는다(중앙 조회수 1,572회 vs
+  // 사람 54만회, 500배 차이). 낮은 조회수 자체는 신생 창작자와 겹치므로
+  // 해시태그 스팸이 함께 있을 때만 추정한다.
+  // 조회수를 모르는 경우엔 예전 기준(해시태그 22개)으로만 판단한다.
   const HASHTAG_MIN = 22;
+  const COMBO_VIEWS_MAX = 3000;
+  const COMBO_HASHTAG_MIN = 8;
   function hashtagCount(html) {
     try {
       const m = html.match(/var ytInitialData\s*=\s*(\{.+?\});<\/script>/s);
@@ -53,8 +61,9 @@
   // 반드시 쿠키를 실어 보낸다 — fetch 옵션을 붙이지 않는 것이 그 방법이다.
   // 쿠키 없이 요청하면 유튜브가 시청 페이지를 거부한다(실측 2026-08-20: 실패 vs 200).
   // 그래서 이 확인은 페이지 컨텍스트에서 해야 하고, 서비스워커에서 하면 통째로 실패한다.
-  // useHashtagSignal 이 false 면 유튜브 공시만 근거로 삼는다.
-  async function checkVideo(videoId, useHashtagSignal) {
+  // useGuess 가 false 면 유튜브 공시만 근거로 삼는다.
+  // views 는 피드에서 읽은 그 영상의 조회수 (모르면 null).
+  async function checkVideo(videoId, useGuess, views) {
     try {
       const r = await fetch('https://www.youtube.com/watch?v=' + videoId);
       if (!r.ok) return null;
@@ -62,8 +71,12 @@
       const badges = watchBadges(html);
       if (badges === null) return null;
       if (badges.some(isAiBadge)) return { verdict: 'ai', reason: 'label' };
-      if (useHashtagSignal && hashtagCount(html) >= HASHTAG_MIN) {
-        return { verdict: 'ai', reason: 'hashtags' };
+      if (useGuess) {
+        const tags = hashtagCount(html);
+        const guess = (views != null)
+          ? (views < COMBO_VIEWS_MAX && tags >= COMBO_HASHTAG_MIN)
+          : (tags >= HASHTAG_MIN);
+        if (guess) return { verdict: 'ai', reason: 'hashtags' };
       }
       return { verdict: 'ok', reason: 'label' };
     } catch (e) { return null; }

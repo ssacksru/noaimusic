@@ -155,12 +155,14 @@ test('재생목록 ID 를 시청 페이지로 열려고 하지 않는다', () =>
 });
 
 test('추정 신호는 유튜브 공시와 구분되고 끌 수 있다', () => {
-  // 해시태그 신호는 실측 오탐 2% 로 완벽하지 않다 — 사용자가 구분하고 끌 수 있어야 한다
+  // 추정은 조회수+해시태그 조합(검출 39%·오탐 0.8%) — 사용자가 구분하고 끌 수 있어야 한다
   const b = read('src/badges.js');
   assert.match(b, /HASHTAG_MIN/, '해시태그 기준값이 없다');
+  assert.match(b, /COMBO_VIEWS_MAX/, '조회수 조합 기준이 없다');
+  assert.match(b, /views < COMBO_VIEWS_MAX && tags >= COMBO_HASHTAG_MIN/, '조합 규칙이 없다');
   assert.match(b, /reason: 'hashtags'/, '근거를 구분해 돌려주지 않는다');
   assert.match(b, /reason: 'label'/, '유튜브 공시 근거를 표시하지 않는다');
-  assert.match(b, /useHashtagSignal/, '추정 신호를 끌 수 없다');
+  assert.match(b, /useGuess/, '추정 신호를 끌 수 없다');
 
   const html = read('popup/popup.html');
   assert.match(html, /id="useGuess"/, '팝업에 추정 끄기 옵션이 없다');
