@@ -1,25 +1,154 @@
 {
   "_comment": "2026-08-19 youtube.com 검색 'AI 노래 플레이리스트' 실측 결과 20건. expect 는 사람이 붙인 정답.",
   "results": [
-    { "t": "𝑷𝒍𝒂𝒚𝒍𝒊𝒔𝒕 | 시끄러운 건 싫고 둠칫하고는 싶어🕺🏻 일할 때 듣기 좋은 플레이리스트 🎼", "c": "라이크둠칫", "id": "UCl22RiXFscUiaZ02UWAYjyQ", "d": "2:41:08", "expect": "pass" },
-    { "t": "🐸AI가 만든 감성음악🐸 하루종일 듣기 좋은 AI 음악플레이리스트", "c": "음악플레이리스트 Hlkyw Music", "id": "UCcHNeo1AxvU2bZjsr24dNRg", "d": "1:02:25", "expect": "block" },
-    { "t": "\"유료강의 듣지마세요\" 1년만에 1억 번 AI 음악 플레이리스트 전부 알려드립니다(30분 풀버전 강의)", "c": "돈벌쥐", "id": "UCgArjx0NL02Ulo69__m8k_A", "d": "26:59", "expect": "pass" },
-    { "t": "Cafe Playlist ☕ 자꾸 반복해서 듣고 싶은 여름 카페 음악 🌊 Chill Cafe Music", "c": "cherry music", "id": "UCbGe5jill2XY05_TGvtKiPQ", "d": "3:57:48", "expect": "pass" },
-    { "t": "[AI 감성 음악 플레이]💥 듣자마자 심박수 200% 폭주 Mix  💥", "c": "AI K-뮤직", "id": "UCV3IgV0uwsUTL_hbbJaFhRg", "d": "13:50", "expect": "block" },
-    { "t": "𝐏𝐥𝐚𝐲𝐥𝐢𝐬𝐭 틀자마자 '와..' 나오는 감성 팝/R&B 모음 🎧 | 요즘 듣는 사람 많은 팝 플레이리스트 💿✨", "c": "Jayu", "id": "UCQkzjKOnkDSGm3JSW2GsQjA", "d": "53:13", "expect": "pass" },
-    { "t": "AI 커버 모음", "c": "재생목록", "id": "UCfzsfEMZhKPXnYJ5U09ZQKA", "d": "", "playlist": true, "expect": "block" },
-    { "t": "AI음악 플레이리스트 관련 정리해봤습니다. (AI음원 수익창출)", "c": "AI에 진심 | 게으른 유튜버", "id": "UCDATvKmotWRx5B3dAGSW6Ng", "d": "8:52", "expect": "pass" },
-    { "t": "'사랑 참' '묻어버린 아픔' '나 가거든' 🎸🔥만들다 몇 번을 울어버린 노래..너무 아프면 1번만 들으세요, 가슴 찢어지는 감성", "c": "레코드 속 추억", "id": "UCQlK6m8noDOY4qzfVzkbNfQ", "d": "1:40:13", "expect": "pass" },
-    { "t": "(NO AI)  요즘 알바들이 추천하는 BGM 모아 봤어요 | 69곡  | #가사 # 노래방 #매장 #𝙋𝙇𝘼𝙔𝙇𝙄𝙎𝙏 #노동요 #하루종일 듣기 좋은", "c": "야꼬널깨 우리의 낭만은 잊혀지지 않는다.", "id": "UCWh_sIfEB4S5mIek9lWnQlQ", "d": "3:57:58", "expect": "pass" },
-    { "t": "𝘱𝘭𝘢𝘺𝘭𝘪𝘴𝘵 첫 곡 듣자마자 다 잘 될 것 같아🍀🤍 하루종일 틀어두기 좋은 요즘 핫한 노동요 모음", "c": "seroma room", "id": "UCEpumCWJ6HI4EHd3OcoZkyw", "d": "8:20:03", "expect": "pass" },
-    { "t": "감성적인 보컬과 잘어울리는 잔잔한 노래 모음(feat. A.I), 3시간 연속듣기", "c": "별별잡동", "id": "UC3seW5Ovy3nb4IRtcVhL4zg", "d": "3:03:34", "expect": "block" },
-    { "t": "[30만뷰]구독자신청곡 ,아득히 먼 곳 - 남자 락발라드 ver. (나의 아저씨 이선균, 현역가왕 구수경 스타일)", "c": "알고보니 혼비백산", "id": "UCq-yocWuPAvbj5qeWhNS2Sg", "d": "4:42", "expect": "pass" },
-    { "t": "[Playlist] 레트로 댄스 명곡 모음 🎧 중독성 강한 8090 감성 연속듣기  / Retro Dance Hits Playlist", "c": "중년 애창곡ㅣ애창", "id": "UC6paoYyOqkMJ2Vg222bM_ug", "d": "1:14:26", "expect": "pass" },
-    { "t": "𝑷𝑳𝑨𝒀𝑳𝑰𝑺𝑻_계속 듣는 중🎧틀어놓는 순간 못 끄는 레트로 감성 리믹스🔥", "c": "추억과비트사이", "id": "UCw4p6KaWTrGneY1meL7h6ug", "d": "2:17:30", "expect": "pass" },
-    { "t": "AI 감성 음악 플레이리스트 (1시간 30분)", "c": "잔상뮤직레코드 영문: Zansang Music Records", "id": "UCwwOK_WsKIiFbtkF50Muf8w", "d": "1:31:08", "expect": "block" },
-    { "t": "\"그냥 이 영상 그대로 따라하세요\" 클로드로 AI 음악 플레이리스트 만들기 A부터 Z까지 (2026년 최신판)", "c": "GAYUN AI", "id": "UCe4oDJjIzt5v352oIdWdp3Q", "d": "13:44", "expect": "pass" },
-    { "t": "매장에서 틀면 손님들이 자꾸 물어보는 요즘 제일 핫한 팝송 모음 | 와 방금 그 노래 제목 뭐에요?", "c": "SISO Wave", "id": "UClRxY7lEeNqc6oezxGSpkKA", "d": "3:31:41", "expect": "pass" },
-    { "t": "𝐏𝐥𝐚𝐲𝐥𝐢𝐬𝐭 첫 곡부터 합격.. 120분 국내 감성힙합 💿 | R&B 인스타 느좋 플리", "c": "UYoung Wave", "id": "UCAFLHVP7O_AFTrwDy_MS9ng", "d": "2:01:52", "expect": "pass" },
-    { "t": "AI 음원 플레이리스트가 돈이 안되는 진짜 이유 3가지 | AI 플리 수익화", "c": "비트훈련소 - AI 음원 비트메이킹 훈련소", "id": "UCqKBdVOtLvwV19E5t8c2Ybg", "d": "3:57", "expect": "pass" }
+    {
+      "t": "𝑷𝒍𝒂𝒚𝒍𝒊𝒔𝒕 | 시끄러운 건 싫고 둠칫하고는 싶어🕺🏻 일할 때 듣기 좋은 플레이리스트 🎼",
+      "c": "라이크둠칫",
+      "id": "UCl22RiXFscUiaZ02UWAYjyQ",
+      "d": "2:41:08",
+      "expect": "pass"
+    },
+    {
+      "t": "🐸AI가 만든 감성음악🐸 하루종일 듣기 좋은 AI 음악플레이리스트",
+      "c": "음악플레이리스트 Hlkyw Music",
+      "id": "UCcHNeo1AxvU2bZjsr24dNRg",
+      "d": "1:02:25",
+      "expect": "block"
+    },
+    {
+      "t": "\"유료강의 듣지마세요\" 1년만에 1억 번 AI 음악 플레이리스트 전부 알려드립니다(30분 풀버전 강의)",
+      "c": "돈벌쥐",
+      "id": "UCgArjx0NL02Ulo69__m8k_A",
+      "d": "26:59",
+      "expect": "pass"
+    },
+    {
+      "t": "Cafe Playlist ☕ 자꾸 반복해서 듣고 싶은 여름 카페 음악 🌊 Chill Cafe Music",
+      "c": "cherry music",
+      "id": "UCbGe5jill2XY05_TGvtKiPQ",
+      "d": "3:57:48",
+      "expect": "pass"
+    },
+    {
+      "t": "[AI 감성 음악 플레이]💥 듣자마자 심박수 200% 폭주 Mix  💥",
+      "c": "AI K-뮤직",
+      "id": "UCV3IgV0uwsUTL_hbbJaFhRg",
+      "d": "13:50",
+      "expect": "block"
+    },
+    {
+      "t": "𝐏𝐥𝐚𝐲𝐥𝐢𝐬𝐭 틀자마자 '와..' 나오는 감성 팝/R&B 모음 🎧 | 요즘 듣는 사람 많은 팝 플레이리스트 💿✨",
+      "c": "Jayu",
+      "id": "UCQkzjKOnkDSGm3JSW2GsQjA",
+      "d": "53:13",
+      "expect": "pass"
+    },
+    {
+      "t": "AI 커버 모음",
+      "c": "재생목록",
+      "id": "UCfzsfEMZhKPXnYJ5U09ZQKA",
+      "d": "",
+      "playlist": true,
+      "expect": "block"
+    },
+    {
+      "t": "AI음악 플레이리스트 관련 정리해봤습니다. (AI음원 수익창출)",
+      "c": "AI에 진심 | 게으른 유튜버",
+      "id": "UCDATvKmotWRx5B3dAGSW6Ng",
+      "d": "8:52",
+      "expect": "pass"
+    },
+    {
+      "t": "'사랑 참' '묻어버린 아픔' '나 가거든' 🎸🔥만들다 몇 번을 울어버린 노래..너무 아프면 1번만 들으세요, 가슴 찢어지는 감성",
+      "c": "레코드 속 추억",
+      "id": "UCQlK6m8noDOY4qzfVzkbNfQ",
+      "d": "1:40:13",
+      "expect": "pass"
+    },
+    {
+      "t": "(NO AI)  요즘 알바들이 추천하는 BGM 모아 봤어요 | 69곡  | #가사 # 노래방 #매장 #𝙋𝙇𝘼𝙔𝙇𝙄𝙎𝙏 #노동요 #하루종일 듣기 좋은",
+      "c": "야꼬널깨 우리의 낭만은 잊혀지지 않는다.",
+      "id": "UCWh_sIfEB4S5mIek9lWnQlQ",
+      "d": "3:57:58",
+      "expect": "pass"
+    },
+    {
+      "t": "𝘱𝘭𝘢𝘺𝘭𝘪𝘴𝘵 첫 곡 듣자마자 다 잘 될 것 같아🍀🤍 하루종일 틀어두기 좋은 요즘 핫한 노동요 모음",
+      "c": "seroma room",
+      "id": "UCEpumCWJ6HI4EHd3OcoZkyw",
+      "d": "8:20:03",
+      "expect": "pass"
+    },
+    {
+      "t": "감성적인 보컬과 잘어울리는 잔잔한 노래 모음(feat. A.I), 3시간 연속듣기",
+      "c": "별별잡동",
+      "id": "UC3seW5Ovy3nb4IRtcVhL4zg",
+      "d": "3:03:34",
+      "expect": "block"
+    },
+    {
+      "t": "[30만뷰]구독자신청곡 ,아득히 먼 곳 - 남자 락발라드 ver. (나의 아저씨 이선균, 현역가왕 구수경 스타일)",
+      "c": "알고보니 혼비백산",
+      "id": "UCq-yocWuPAvbj5qeWhNS2Sg",
+      "d": "4:42",
+      "expect": "pass"
+    },
+    {
+      "t": "[Playlist] 레트로 댄스 명곡 모음 🎧 중독성 강한 8090 감성 연속듣기  / Retro Dance Hits Playlist",
+      "c": "중년 애창곡ㅣ애창",
+      "id": "UC6paoYyOqkMJ2Vg222bM_ug",
+      "d": "1:14:26",
+      "expect": "pass"
+    },
+    {
+      "t": "𝑷𝑳𝑨𝒀𝑳𝑰𝑺𝑻_계속 듣는 중🎧틀어놓는 순간 못 끄는 레트로 감성 리믹스🔥",
+      "c": "추억과비트사이",
+      "id": "UCw4p6KaWTrGneY1meL7h6ug",
+      "d": "2:17:30",
+      "expect": "pass"
+    },
+    {
+      "t": "AI 감성 음악 플레이리스트 (1시간 30분)",
+      "c": "잔상뮤직레코드 영문: Zansang Music Records",
+      "id": "UCwwOK_WsKIiFbtkF50Muf8w",
+      "d": "1:31:08",
+      "expect": "block"
+    },
+    {
+      "t": "\"그냥 이 영상 그대로 따라하세요\" 클로드로 AI 음악 플레이리스트 만들기 A부터 Z까지 (2026년 최신판)",
+      "c": "GAYUN AI",
+      "id": "UCe4oDJjIzt5v352oIdWdp3Q",
+      "d": "13:44",
+      "expect": "pass"
+    },
+    {
+      "t": "매장에서 틀면 손님들이 자꾸 물어보는 요즘 제일 핫한 팝송 모음 | 와 방금 그 노래 제목 뭐에요?",
+      "c": "SISO Wave",
+      "id": "UClRxY7lEeNqc6oezxGSpkKA",
+      "d": "3:31:41",
+      "expect": "pass"
+    },
+    {
+      "t": "𝐏𝐥𝐚𝐲𝐥𝐢𝐬𝐭 첫 곡부터 합격.. 120분 국내 감성힙합 💿 | R&B 인스타 느좋 플리",
+      "c": "UYoung Wave",
+      "id": "UCAFLHVP7O_AFTrwDy_MS9ng",
+      "d": "2:01:52",
+      "expect": "pass"
+    },
+    {
+      "t": "AI 음원 플레이리스트가 돈이 안되는 진짜 이유 3가지 | AI 플리 수익화",
+      "c": "비트훈련소 - AI 음원 비트메이킹 훈련소",
+      "id": "UCqKBdVOtLvwV19E5t8c2Ybg",
+      "d": "3:57",
+      "expect": "pass"
+    },
+    {
+      "t": "[𝐏𝐥𝐚𝐲𝐥𝐢𝐬𝐭] 요즘 매일듣는 Ai Tomioka(토미오카 아이) 노래모음",
+      "c": "playlist",
+      "id": "UCaitomioka",
+      "d": "22:31",
+      "expect": "pass",
+      "_note": "2026-08-20 실측 — 'Ai' 는 일본 가수 이름이다. 대문자 AI 토큰만 잡아야 한다."
+    }
   ]
 }

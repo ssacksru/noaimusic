@@ -83,12 +83,23 @@ npm run sync      # heuristics.iso.js 사본 갱신 (test 가 먼저 실행한�
 - `src/page.js` — MAIN world. 데이터 레이어 필터링
 - `src/content.js` — ISOLATED. 설정 전달·DOM 안전망·프로파일링·통계
 - `src/background.js` — 배지·통계·채널 프로파일링
+- `src/lists.js` — 차단·허용 목록 저장소 (팝업·콘텐츠 공용)
 - `data/seed-channels.json` — Soul Over AI 스냅샷 (채널 ID)
 - `data/ai-channels.json` — 유튜브 AI 공시로 직접 수집한 채널
 
 `npm test` 는 `npm run sync` 를 먼저 돌려 `src/heuristics.iso.js` 를 갱신한다.
 **크롬은 같은 파일 경로를 MAIN/ISOLATED 두 월드에 중복 주입하지 않는다**(2026-08-19 실측).
 그래서 격리 월드용 사본을 따로 두며, 두 파일이 어긋나면 테스트가 실패한다.
+
+## 저장소
+
+| 무엇 | 어디 | 왜 |
+|---|---|---|
+| 설정 3개 (켜기·자동넘김·시드사용) | `storage.sync` | 작고 거의 안 바뀌어 기기 간 동기화가 이득 |
+| 차단·허용 목록 | `storage.local` | **sync 는 항목당 8KB 라 채널 100여 개에서 저장이 조용히 실패한다**(실측). local 은 2,000개도 112KB 로 여유롭다 |
+| 학습 결과·통계·최근 목록 | `storage.local` | 계속 커지고 기기마다 다시 쌓이면 되는 값 |
+
+구버전이 `sync` 에 남긴 목록은 처음 읽을 때 `local` 로 옮기고 `sync` 에서 지운다.
 
 ## 데이터 출처
 

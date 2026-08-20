@@ -26,24 +26,30 @@
         Object.assign(seed, (await r.json()).channels || {});
       } catch (e) { /* 한쪽이 없어도 나머지로 동작 */ }
     }
-    const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true, autoSkip: true });
+    const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true });
     const local = await chrome.storage.local.get({ profiles: {} });
+    const mine = await window.NAM_LISTS.getLists();
     enabled = sync.enabled;
     autoSkip = sync.autoSkip;
     profiles = local.profiles;
-    lists = { allowed: sync.allowed, blocked: sync.blocked, seed: sync.useSeed ? seed : {} };
+    lists = { allowed: mine.allowed, blocked: mine.blocked, seed: sync.useSeed ? seed : {} };
     pushLists();
   }
 
   chrome.storage.onChanged.addListener((changes, area) => {
+    let touched = false;
     if (area === 'sync') {
-      if (changes.enabled) enabled = changes.enabled.newValue;
-      if (changes.autoSkip) autoSkip = changes.autoSkip.newValue;
-      if (changes.blocked) lists.blocked = changes.blocked.newValue;
-      if (changes.allowed) lists.allowed = changes.allowed.newValue;
-      pushLists();
-      if (enabled) sweepDom();
+      if (changes.enabled) { enabled = changes.enabled.newValue; touched = true; }
+      if (changes.autoSkip) { autoSkip = changes.autoSkip.newValue; touched = true; }
+      if (changes.useSeed) { loadState(); return; }
+    } else if (area === 'local') {
+      if (changes.blocked) { lists.blocked = changes.blocked.newValue || {}; touched = true; }
+      if (changes.allowed) { lists.allowed = changes.allowed.newValue || {}; touched = true; }
+      if (changes.profiles) { profiles = changes.profiles.newValue || {}; touched = true; }
     }
+    if (!touched) return;
+    pushLists();
+    if (enabled) sweepDom();
   });
 
   // ── page.js 신호 수신: 통계 + 프로파일링 후보 ──────────────────
@@ -231,9 +237,7 @@
       const undo = document.createElement('button');
       undo.textContent = '되돌리기';
       undo.onclick = async () => {
-        const { allowed } = await chrome.storage.sync.get({ allowed: {} });
-        allowed[info.channelId] = info.channel || info.channelId;
-        await chrome.storage.sync.set({ allowed });
+        await window.NAM_LISTS.setChannel(info.channelId, info.channel, 'allowed');
         chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: info.channelId, verdict: 'ok', channel: info.channel }).catch(() => {});
         location.href = '/watch?v=' + info.v;
       };
@@ -294,18 +298,11 @@
     const anchor = document.querySelector('#below') || document.body;
     anchor.prepend(bar);
     bar.querySelector('#nam-block').onclick = async () => {
-      if (!meta.channelId) return bar.remove();
-      const { blocked } = await chrome.storage.sync.get({ blocked: {} });
-      blocked[meta.channelId] = meta.channel;
-      await chrome.storage.sync.set({ blocked });
+      await window.NAM_LISTS.setChannel(meta.channelId, meta.channel, 'blocked');
       bar.remove();
     };
     bar.querySelector('#nam-allow').onclick = async () => {
-      if (meta.channelId) {
-        const { allowed } = await chrome.storage.sync.get({ allowed: {} });
-        allowed[meta.channelId] = meta.channel;
-        await chrome.storage.sync.set({ allowed });
-      }
+      await window.NAM_LISTS.setChannel(meta.channelId, meta.channel, 'allowed');
       bar.remove();
     };
   }

@@ -48,10 +48,7 @@ function row(title, sub, btnText, onClick) {
 }
 
 async function allowChannel(channelId, name) {
-  const { allowed, blocked } = await chrome.storage.sync.get({ allowed: {}, blocked: {} });
-  allowed[channelId] = name || channelId;
-  delete blocked[channelId];
-  await chrome.storage.sync.set({ allowed, blocked });
+  await NAM_LISTS.setChannel(channelId, name, 'allowed');
   // 학습 결과도 함께 지운다 — 그러지 않으면 다시 AI로 판정된다
   const { profiles, profileNames } = await chrome.storage.local.get({ profiles: {}, profileNames: {} });
   delete profiles[channelId]; delete profileNames[channelId];
@@ -60,10 +57,11 @@ async function allowChannel(channelId, name) {
 }
 
 async function render() {
-  const sync = await chrome.storage.sync.get({ enabled: true, blocked: {}, allowed: {}, useSeed: true, autoSkip: true });
+  const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true });
   const local = await chrome.storage.local.get({
     stats: { day: today(), count: 0, total: 0 }, recent: [], profiles: {}, profileNames: {},
   });
+  const mine = await NAM_LISTS.getLists();
 
   $('toggle').checked = sync.enabled;
   $('useSeed').checked = sync.useSeed;
@@ -94,8 +92,8 @@ async function render() {
   // 학습됨 = 프로파일링·재생 중 판별로 스스로 알아낸 채널
   const learned = Object.keys(local.profiles).filter((id) => local.profiles[id] === 'ai');
   $('n-learned').textContent = learned.length;
-  $('n-blocked').textContent = Object.keys(sync.blocked).length;
-  $('n-allowed').textContent = Object.keys(sync.allowed).length;
+  $('n-blocked').textContent = Object.keys(mine.blocked).length;
+  $('n-allowed').textContent = Object.keys(mine.allowed).length;
 
   const NOTE = {
     learned: '유튜브의 AI 표시를 보고 이 확장이 직접 알아낸 채널입니다.',
@@ -106,9 +104,12 @@ async function render() {
 
   const cl = $('channels');
   cl.innerHTML = '';
-  const entries = tab === 'learned'
+  const all = tab === 'learned'
     ? learned.map((id) => [id, local.profileNames[id] || id])
-    : Object.entries(tab === 'blocked' ? sync.blocked : sync.allowed);
+    : Object.entries(tab === 'blocked' ? mine.blocked : mine.allowed);
+  // 보이는 건 몇 줄뿐이라 전부 그릴 이유가 없다 (채널이 수천 개까지 쌓인다)
+  const LIST_CAP = 100;
+  const entries = all.slice(0, LIST_CAP);
 
   const SUB = {
     learned: '유튜브 AI 표시로 학습됨',
@@ -118,9 +119,7 @@ async function render() {
   for (const [id, name] of entries) {
     cl.append(row(name || id, SUB[tab], tab === 'allowed' ? '해제' : '허용', async () => {
       if (tab === 'allowed') {
-        const { allowed } = await chrome.storage.sync.get({ allowed: {} });
-        delete allowed[id];
-        await chrome.storage.sync.set({ allowed });
+        await NAM_LISTS.setChannel(id, name, null);
         render();
       } else {
         allowChannel(id, name);
@@ -131,6 +130,14 @@ async function render() {
     const li = document.createElement('li');
     li.innerHTML = '<div class="meta"><span class="c">비어 있음</span></div>';
     cl.append(li);
+  } else if (all.length > entries.length) {
+    const li = document.createElement('li');
+    const d = document.createElement('div');
+    d.className = 'meta';
+    const c = document.createElement('span');
+    c.className = 'c';
+    c.textContent = `외 ${(all.length - entries.length).toLocaleString('ko-KR')}개 더 있음`;
+    d.append(c); li.append(d); cl.append(li);
   }
 
   // 더 있는 목록은 아래를 흐리게 해 스크롤을 알린다 (반쯤 잘린 행처럼 보이지 않게)

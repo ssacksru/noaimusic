@@ -19,6 +19,12 @@ test('실측 검색 결과 20건을 전부 정답대로 판정한다', () => {
   assert.equal(wrong.length, 0, '오판정:\n' + wrong.join('\n'));
 });
 
+test('실측: 아티스트 이름 "Ai" 를 AI 로 오인하지 않는다', () => {
+  const r = results.find((x) => /Ai Tomioka/.test(x.t));
+  assert.ok(r, '픽스처에 해당 사례가 없다');
+  assert.equal(verdict(r).action, 'pass');
+});
+
 test('실제 AI 플레이리스트 5건은 전부 잡힌다 (미탐 0)', () => {
   const blocked = results.filter((r) => r.expect === 'block');
   assert.equal(blocked.length, 5);
