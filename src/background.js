@@ -122,9 +122,27 @@ function watchBadgeLabels(html) {
   return badges === null ? null : badges.map((b) => b.label).filter(Boolean);
 }
 
+// 유튜브는 짧은 시간에 많이 요청하면 막는다(실측 2026-08-20: 3시간 청취 중 차단).
+// 막히면 판정이 전부 실패하고 학습이 멈추므로, 속도를 스스로 조절하고 물러선다.
+let blockedUntil = 0;
+let lastFetchAt = 0;
+const MIN_GAP_MS = 4000;      // 요청 사이 최소 간격
+const BACKOFF_MS = 10 * 60000; // 막혔다고 판단되면 쉬는 시간
+
+function throttled() { return Date.now() < blockedUntil; }
+
 async function getText(url) {
-  const r = await fetch(url, { credentials: 'omit' });
-  return r.text();
+  const wait = lastFetchAt + MIN_GAP_MS - Date.now();
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastFetchAt = Date.now();
+  try {
+    const r = await fetch(url, { credentials: 'omit' });
+    if (!r.ok) throw new Error('status ' + r.status);
+    return r.text();
+  } catch (e) {
+    blockedUntil = Date.now() + BACKOFF_MS;   // 한동안 쉰다
+    throw e;
+  }
 }
 
 // 학습한 채널은 이름도 함께 남긴다 — 팝업에서 사람이 알아볼 수 있어야 한다
@@ -139,6 +157,7 @@ async function rememberName(channelId, name) {
 async function profileChannel(channelId, sampleVideoId, channelName) {
   const cache = await chrome.storage.local.get({ profiles: {} });
   if (cache.profiles[channelId]) return cache.profiles[channelId];
+  if (throttled()) return null;   // 막혀 있는 동안은 헛되이 시도하지 않는다
 
   // 근거는 유튜브 자체 공시 배지 하나뿐이다.
   // HTML 전체 문자열 매칭은 쓰지 않는다 — 사이드바 추천에 AI 영상이 섞이면

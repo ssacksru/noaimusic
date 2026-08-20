@@ -104,3 +104,20 @@ test('수집기가 판정 불가를 "AI 아님" 으로 세지 않는다', () => 
   assert.ok(!/\(verdict\.badges \|\| \[\]\)/.test(src), '실패를 빈 배열로 뭉개고 있다');
   assert.match(src, /요청이 막힌/, '연속 실패 시 중단하는 처리가 없다');
 });
+
+test('프로파일링이 요청 속도를 조절하고 막히면 물러선다', () => {
+  // 유튜브는 짧은 시간에 많이 요청하면 막는다. 그때 헛시도를 계속하면
+  // 학습이 통째로 멈춘다(실측 2026-08-20: 3시간 청취 중 차단되어 21개 중 4개만 검사).
+  const bg = read('src/background.js');
+  assert.match(bg, /MIN_GAP_MS/, '요청 간격 제한이 없다');
+  assert.match(bg, /blockedUntil/, '차단 감지 후 물러서는 처리가 없다');
+  assert.match(bg, /if \(throttled\(\)\) return null/, '막힌 동안 헛시도를 막지 않는다');
+});
+
+test('학습 후보가 실패해도 사라지지 않는다', () => {
+  // 실패한 후보가 큐에서 증발하면 그 페이지에서는 영영 다시 시도하지 않는다
+  const c = read('src/content.js');
+  assert.match(c, /const wanted = new Map\(\)/, '미처리 후보를 보관하지 않는다');
+  assert.match(c, /wanted\.delete\(channelId\)/, '판정을 받은 뒤 정리하지 않는다');
+  assert.match(c, /setInterval\(/, '주기적으로 다시 시도하지 않는다');
+});

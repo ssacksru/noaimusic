@@ -7,7 +7,6 @@
   let lists = { allowed: {}, blocked: {}, seed: {} };
   let profiles = {};   // channelId -> 'ai' | 'ok'
   let profileNames = {};
-  const pending = new Set();
 
   function pushLists() {
     const blocked = { ...lists.blocked, ...aiProfiles() };
@@ -152,36 +151,44 @@
     return hidden;
   }
 
-  // ── 채널 프로파일링: 음악인데 AI 신호가 없는 신규 채널만, 채널당 1회 ──
-  // 후보는 한꺼번에 몰려오므로 큐에 쌓고 하나씩 처리한다.
-  // (예전엔 동시 한도를 넘은 후보를 그냥 버려서 대부분이 학습되지 않았다)
-  const queue = [];
-  let running = 0;
-  const MAX_CONCURRENT = 2;
+  // ── 채널 프로파일링: 음악인데 AI 신호가 없는 신규 채널을 백그라운드에서 확인 ──
+  // 어떤 이유로 한 건이 실패하거나 응답이 유실돼도 전체가 멈추면 안 된다.
+  // 그래서 "무엇을 아직 모르는가"를 매번 다시 계산해 채워 넣는 자가복구 구조로 둔다.
+  // (예전엔 실패한 후보가 큐에서 사라져 21개 중 2개만 검사되고 멈췄다 — 실측 2026-08-20)
+  const wanted = new Map();      // channelId -> {videoId, channel}  아직 판정 못 받은 것
+  const inFlight = new Set();
+  const MAX_CONCURRENT = 3;
 
   function queueProfile(channelId, videoId, channel) {
-    if (!channelId || pending.has(channelId)) return;
-    pending.add(channelId);
-    queue.push({ channelId, videoId, channel });
+    if (!channelId || channelId in profiles) return;
+    if (!wanted.has(channelId)) wanted.set(channelId, { videoId, channel });
     pump();
   }
 
   function pump() {
-    while (running < MAX_CONCURRENT && queue.length) {
-      const job = queue.shift();
-      running++;
-      chrome.runtime.sendMessage({ type: 'NAM_PROFILE', ...job })
-        .then((res) => {
-          running--;
-          if (res && res.verdict) {
-            profiles[job.channelId] = res.verdict;
-            if (res.verdict === 'ai') { pushLists(); sweepDom(); }
-          } else {
-            pending.delete(job.channelId);   // 판정 불가 — 나중에 다시 볼 수 있게 푼다
-          }
-          pump();
-        })
-        .catch(() => { running--; pending.delete(job.channelId); pump(); });
+    for (const [channelId, job] of wanted) {
+      if (inFlight.size >= MAX_CONCURRENT) break;
+      if (inFlight.has(channelId)) continue;
+      inFlight.add(channelId);
+
+      let settled = false;
+      const done = (verdict) => {
+        if (settled) return;
+        settled = true;
+        inFlight.delete(channelId);
+        if (verdict) {
+          profiles[channelId] = verdict;
+          wanted.delete(channelId);            // 판정을 받았으니 더 볼 필요 없다
+          if (verdict === 'ai') { pushLists(); sweepDom(); }
+        }
+        // 판정 불가면 wanted 에 남겨 다음 주기에 다시 시도한다
+        pump();
+      };
+      // 서비스워커가 유휴 종료되면 응답이 오지 않는다 — 그때도 자리를 비워준다
+      const timer = setTimeout(() => done(null), 20000);
+      chrome.runtime.sendMessage({ type: 'NAM_PROFILE', channelId, videoId: job.videoId, channel: job.channel })
+        .then((res) => { clearTimeout(timer); done(res && res.verdict); })
+        .catch(() => { clearTimeout(timer); done(null); });
     }
   }
 
@@ -354,5 +361,7 @@
     new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true });
     document.addEventListener('yt-navigate-finish', schedule);
     schedule();
+    // 화면이 조용해도 아직 모르는 채널이 남아 있으면 계속 확인한다
+    setInterval(() => { if (enabled) { sweepDom(); pump(); } }, 15000);
   });
 })();
