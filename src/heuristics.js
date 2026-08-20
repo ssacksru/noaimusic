@@ -13,6 +13,8 @@
       '\\bbgm\\b', '노동요', '출근길', '드라이브\\s*(곡|노래|음악)',
       // 커버곡은 길이와 무관하게 음악 콘텐츠다 — AI 딥페이크 커버가 3분짜리로 올라온다
       '\\bcovers?\\b', '커버',
+      // "곡" 자체를 가리키는 말도 마찬가지 (3분짜리 단일곡)
+      '\\bchansons?\\b', 'canci[oó]n(es)?', '\\blieder?\\b',
     ].join('|'),
     'i'
   );
@@ -37,8 +39,8 @@
       '\\breggae\\b', '\\bsynthwave\\b', '\\bcity\\s*pop\\b',
       // 다국어 음악어 — 이게 없어 스페인어·러시아어·일본어 AI 음악이 음악으로 인식조차 안 됐다
       // (실측 2026-08-20: "Música generada por IA" 가 not-music 으로 통과했다)
-      'm[uú]sic[ao]s?', '\\bmusik\\b', '\\bmusique\\b', 'canci[oó]n(es)?', '\\bcanciones\\b',
-      'музык', 'песн', '音楽', '音乐', '\\bkanpai\\b', '\\bcumbia\\b', '\\bsalsa\\b',
+      'm[uú]sic[ao]s?', '\\bmusik(en)?\\b', '\\bmusiques?\\b', 'canci[oó]n(es)?',
+      'музык', 'песн', 'кавер', 'трек', '音楽', '音乐', '\\bkanpai\\b', '\\bcumbia\\b', '\\bsalsa\\b',
       '\\bbachata\\b', '\\breggaeton\\b', '\\bbalada\\b', '\\bflamenco\\b', '\\brumba\\b',
       '\\bsertanejo\\b', '\\bmpb\\b', '\\bsamba\\b', '\\bfado\\b', '\\blied(er)?\\b',
       '\\bchanson\\b', '\\bplaylist\\b', '作業用', 'ボカロ', '\\binst\\b',
@@ -73,9 +75,15 @@
       // 일본어
       'ai\\s*(生成|作曲|作成|カバー|音楽|ソング)', '生成\\s*ai', 'aiで(作|生成)',
       // 장르어 바로 뒤의 IA — 스페인어권에서 흔한 표기 ("Cumbia IA", "Versión JAZZ IA")
-      '(versi[oó]n|cover|remix|mix|cumbia|salsa|bachata|reggaeton|balada|flamenco|rumba|jazz|rock|pop|trap|house|techno|blues)\\s*[\\-–|·]?\\s*i\\.?a\\.?(?![A-Za-z])',
+      '(versi[oó]n|cover|remix|mix|cumbia|salsa|bachata|reggaeton|balada|flamenco|rumba|jazz|rock|pop|trap|house|techno|blues|chanson|musique|m[uú]sica|musik|lied|song|canci[oó]n)s?\\s*[\\-–|·\\u2019\\u0027]?\\s*i\\.?a\\.?(?![A-Za-z])',
       // 해시태그로 AI 를 밝히는 관행 (#ai #aimusic #aiart #sunoai)
       '#\\s?ai(music|art|song|cover|generated)?(?![A-Za-z])',
+      // 프랑스어: 부사가 끼어든다 ("Créée entièrement par IA")
+      'cr[eé]{2}e?s?\\s+(\\S+\\s+)?(par|avec)\\s+(une\\s+)?i\\.?a\\.?(?![A-Za-z])',
+      // 러시아어
+      'искусственн\\S*\\s+интеллект', 'нейро[\\s\\-]?(кавер|песн|музык)',
+      // AI 토큰 바로 뒤에 장르가 오는 흔한 표기 ("AI Rock Song", "KI Rockmusik", "IA Cumbia")
+      '(^|[^A-Za-z])(ai|ki|ia)[\\s\\-]+(rock|pop|jazz|edm|rap|hip[\\s\\-]?hop|country|folk|metal|blues|soul|dance|disco|techno|house|trance|ambient|classical|klassik|lo-?fi|musik|music|musique|m[uú]sica|song|lied|chanson)',
     ].join('|'),
     'i'
   );
@@ -102,8 +110,15 @@
     [
       '알려드립니다', '알려드릴', '정리해', '설명해', '강의', '튜토리얼', '만드는\\s*법', '만들기',
       '사용법', '방법', '따라하', '수익', '돈\\s*(버는|벌기|되는|안되는)', '후기', '비교',
-      '이유\\s*\\d*가지', '총정리', '가이드', '\\bhow\\s+to\\b', '\\btutorial\\b', '\\bexplained\\b',
+      '이유\\s*\\d*가지', '총정리', '가이드', '\\btutorial\\b', '\\bexplained\\b',
       '\\breview\\b', '\\bvs\\.?\\b', '노하우', '꿀팁', '초보',
+      // "how to" 는 제목 맨 앞이나 구분자 뒤일 때만 튜토리얼로 본다.
+      // 노래 제목 안에 들어간 경우("Don't Tell Me How to Live")까지 통과시키면 안 된다.
+      '(^|[|\\-–—:(\\[]\\s*)how\\s+to\\b',
+      // 다국어 튜토리얼 표현
+      'comment\\s+(cr[eé]er|faire)', 'c[oó]mo\\s+(crear|hacer)', 'wie\\s+man\\b',
+      '\\berstell\\w*\\b', '\\bmachen\\b', '\\banleitung\\b', 'как\\s+(сделать|создать)',
+      '\\bstep[\\s\\-]by[\\s\\-]step\\b', '\\bguide\\b', '\\bcurso\\b', '\\btutoriel\\b',
     ].join('|'),
     'i'
   );

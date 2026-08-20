@@ -102,6 +102,47 @@ test('커버곡은 길이와 무관하게 음악으로 본다', () => {
   assert.equal(ev({ title: 'Adele - Hello (piano cover)', durationSec: 240 }).reason, 'music-clean');
 });
 
+test('독일어·프랑스어·러시아어 AI 음악을 잡는다', () => {
+  const b = (t, c = '', d = 0, p = true) => ev({ title: t, channel: c, durationSec: d, isPlaylist: p }).action;
+  assert.equal(b("Chanson d'amour – Créée entièrement par IA", '', 198, false), 'block');
+  assert.equal(b('AI Rock Song | KI Rockmusik', '', 305, false), 'block');
+  assert.equal(b('НЕЙРО КАВЕРЫ, Ai, Искусственный интеллект'), 'block');
+  assert.equal(b('Песни в исполнении искусственного интеллекта'), 'block');
+});
+
+test('다국어 튜토리얼은 통과시킨다', () => {
+  const r = (t, d = 600) => ev({ title: t, channel: '', durationSec: d, isPlaylist: false }).reason;
+  assert.equal(r("Comment créer une chanson avec une IA", 129), 'about-ai');
+  assert.equal(r('Mit KI Musik machen: So erstellst du einen Hit in 10 Minuten', 682), 'about-ai');
+  assert.equal(r('How To Make Song Covers with Suno AI (Step-by-Step Guide)', 70), 'about-ai');
+});
+
+test('노래 제목 속 "how to" 를 튜토리얼로 오인하지 않는다', () => {
+  // 실측: AI 음악인데 노래 제목에 "Don't Tell Me How to Live" 가 들어 통과했다 (2026-08-20)
+  const v = ev({ title: 'AI Rock Song – "My Life (Don\'t Tell Me How to Live)"', channel: '', durationSec: 305 });
+  assert.equal(v.action, 'block', `튜토리얼로 오인: ${v.reason}`);
+});
+
+test('사람이 부른 커버·연주는 다국어에서도 통과', () => {
+  const r = (t, d = 240) => ev({ title: t, channel: '', durationSec: d, isPlaylist: false }).action;
+  assert.equal(r('Кавер на песню Кино - Группа крови (живой звук)'), 'pass');
+  assert.equal(r('Sokolov plays Chopin - classical piano recital', 3600), 'pass');
+  assert.equal(r('Kim Wilde - Kids in America official video'), 'pass');
+});
+
+test('복수형·활용형 음악어를 놓치지 않는다', () => {
+  // "\\bmusique\\b" 는 복수형 "musiques" 를 못 잡고, "musiken?" 은 "Musik" 을 못 잡았다 (2026-08-20 실측)
+  assert.equal(ev({ title: '5 musiques créées par IA', durationSec: 383 }).action, 'block');
+  assert.equal(ev({ title: 'Musik KI generiert entspannend', durationSec: 3600 }).action, 'block');
+  assert.equal(ev({ title: "Chanson d’amour IA (Pop romantique)", durationSec: 196 }).action, 'block');
+});
+
+test('곡을 뜻하는 말이 있으면 짧아도 음악으로 본다', () => {
+  // AI 노래는 3분짜리 단일곡으로 올라온다 — 장시간 관문만 두면 전부 새어나간다
+  assert.equal(ev({ title: 'Édith Piaf - La Vie en rose chanson classique', durationSec: 180 }).reason, 'music-clean');
+  assert.equal(ev({ title: 'Mia - chanson française live', durationSec: 240 }).action, 'pass');
+});
+
 test('목록 우선순위: 허용 > 차단 > 시드 > 휴리스틱', () => {
   const lists = { allowed: { UCA: 1 }, blocked: { UCB: 1 }, seed: { UCS: 1 } };
   assert.equal(ev({ title: 'AI 노래모음', channel: 'x', channelId: 'UCA' }, lists).reason, 'allowlist');
