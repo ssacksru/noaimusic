@@ -4,6 +4,7 @@
   const H = window.NAM_HEURISTICS;
   let enabled = true;
   let autoSkip = true;
+  let useGuess = true;   // 유튜브 공시가 없을 때 해시태그 같은 추정 신호도 쓸지
   let lists = { allowed: {}, blocked: {}, seed: {} };
   let profiles = {};   // channelId -> 'ai' | 'ok'
   let profileNames = {};
@@ -43,12 +44,13 @@
         Object.assign(seed, (await r.json()).channels || {});
       } catch (e) { /* 한쪽이 없어도 나머지로 동작 */ }
     }
-    const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true });
+    const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true, useGuess: true });
     const local = await chrome.storage.local.get({ profiles: {}, profileNames: {} });
     const mine = await window.NAM_LISTS.getLists();
     profileNames = local.profileNames;
     enabled = sync.enabled;
     autoSkip = sync.autoSkip;
+    useGuess = sync.useGuess;
     profiles = local.profiles;
     lists = { allowed: mine.allowed, blocked: mine.blocked, seed: sync.useSeed ? seed : {} };
     pushLists();
@@ -59,6 +61,7 @@
     if (area === 'sync') {
       if (changes.enabled) { enabled = changes.enabled.newValue; touched = true; }
       if (changes.autoSkip) { autoSkip = changes.autoSkip.newValue; touched = true; }
+      if (changes.useGuess) { useGuess = changes.useGuess.newValue; touched = true; }
       if (changes.useSeed) { loadState(); return; }
     } else if (area === 'local') {
       if (changes.blocked) { lists.blocked = changes.blocked.newValue || {}; touched = true; }
@@ -189,16 +192,16 @@
       if (inFlight.has(channelId)) continue;
       inFlight.add(channelId);
 
-      window.NAM_BADGES.checkVideo(job.videoId).then((verdict) => {
+      window.NAM_BADGES.checkVideo(job.videoId, useGuess).then((res) => {
         inFlight.delete(channelId);
-        if (verdict) {
+        if (res && res.verdict) {
           failStreak = 0;
-          profiles[channelId] = verdict;
+          profiles[channelId] = res.verdict;
           wanted.delete(channelId);
           chrome.runtime.sendMessage({
-            type: 'NAM_MARK', channelId, verdict, channel: job.channel,
+            type: 'NAM_MARK', channelId, verdict: res.verdict, channel: job.channel, why: res.reason,
           }).catch(() => {});
-          if (verdict === 'ai') { pushLists(); resweep(); }
+          if (res.verdict === 'ai') { pushLists(); resweep(); }
         } else if (++failStreak >= 4) {
           pausedUntil = Date.now() + 60000;   // 계속 실패하면 1분 쉰다
           failStreak = 0;

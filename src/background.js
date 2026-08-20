@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return false;
   }
   if (msg.type === 'NAM_MARK') {
-    markChannel(msg.channelId, msg.verdict, msg.channel).then((verdict) => sendResponse({ verdict }))
+    markChannel(msg.channelId, msg.verdict, msg.channel, msg.why).then((verdict) => sendResponse({ verdict }))
       .catch(() => sendResponse({ verdict: null }));
     return true; // async
   }
@@ -92,8 +92,15 @@ async function rememberName(channelId, name) {
 }
 
 // 시청 페이지에서 content script 가 배지를 직접 본 경우 — 즉시 채널을 AI로 확정한다
-async function markChannel(channelId, verdict, channelName) {
+async function markChannel(channelId, verdict, channelName, why) {
   await rememberName(channelId, channelName);
+  if (why) {
+    const { profileWhy } = await chrome.storage.local.get({ profileWhy: {} });
+    if (profileWhy[channelId] !== why) {
+      profileWhy[channelId] = why;
+      await chrome.storage.local.set({ profileWhy });
+    }
+  }
   const cache = await chrome.storage.local.get({ profiles: {} });
   if (cache.profiles[channelId] === verdict) return verdict;
   cache.profiles[channelId] = verdict;

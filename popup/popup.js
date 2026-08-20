@@ -58,15 +58,16 @@ async function allowChannel(channelId, name) {
 }
 
 async function render() {
-  const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true });
+  const sync = await chrome.storage.sync.get({ enabled: true, useSeed: true, autoSkip: true, useGuess: true });
   const local = await chrome.storage.local.get({
-    stats: { day: today(), count: 0, total: 0 }, recent: [], profiles: {}, profileNames: {},
+    stats: { day: today(), count: 0, total: 0 }, recent: [], profiles: {}, profileNames: {}, profileWhy: {},
   });
   const mine = await NAM_LISTS.getLists();
 
   $('toggle').checked = sync.enabled;
   $('useSeed').checked = sync.useSeed;
   $('autoSkip').checked = sync.autoSkip;
+  $('useGuess').checked = sync.useGuess;
   $('dot').classList.toggle('off', !sync.enabled);
   document.body.classList.toggle('disabled', !sync.enabled);
 
@@ -106,7 +107,8 @@ async function render() {
   const cl = $('channels');
   cl.innerHTML = '';
   const all = tab === 'learned'
-    ? learned.map((id) => [id, local.profileNames[id] || id])
+    ? learned.map((id) => [id, local.profileNames[id] || id,
+        local.profileWhy[id] === 'hashtags' ? '정황으로 추정 (유튜브 표시 없음)' : null])
     : Object.entries(tab === 'blocked' ? mine.blocked : mine.allowed);
   // 보이는 건 몇 줄뿐이라 전부 그릴 이유가 없다 (채널이 수천 개까지 쌓인다)
   const LIST_CAP = 100;
@@ -117,8 +119,8 @@ async function render() {
     blocked: '시청 페이지에서 차단함',
     allowed: '항상 표시',
   };
-  for (const [id, name] of entries) {
-    cl.append(row(name || id, SUB[tab], tab === 'allowed' ? '해제' : '허용', async () => {
+  for (const [id, name, note] of entries) {
+    cl.append(row(name || id, note || SUB[tab], tab === 'allowed' ? '해제' : '허용', async () => {
       if (tab === 'allowed') {
         await NAM_LISTS.setChannel(id, name, null);
         render();
@@ -147,6 +149,7 @@ async function render() {
 
 $('toggle').onchange = (e) => chrome.storage.sync.set({ enabled: e.target.checked }).then(render);
 $('useSeed').onchange = (e) => chrome.storage.sync.set({ useSeed: e.target.checked });
+$('useGuess').onchange = (e) => chrome.storage.sync.set({ useGuess: e.target.checked });
 $('autoSkip').onchange = (e) => chrome.storage.sync.set({ autoSkip: e.target.checked });
 for (const b of document.querySelectorAll('.tab')) {
   b.onclick = () => {
