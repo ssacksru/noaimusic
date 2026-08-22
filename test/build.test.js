@@ -238,3 +238,11 @@ test('팝업에서 지금 보는 채널을 바로 차단할 수 있다', () => {
   assert.match(p, /NAM_GET_WATCH/, '팝업 질의가 없다');
   assert.match(p, /\^UC\[\\w-\]\{22\}\$/, '채널 ID 형식 검증이 없다');
 });
+
+test('시드 채널의 믹스도 이름 매칭에 포함된다', () => {
+  // blockedNames 가 차단·학습 이름만 모으면 시드 채널의 믹스 카드가 살아남는다
+  // (최종 테스트 루프 5회차 실측 2026-08-22: "믹스 - balcony9" 잔존)
+  const c = read('src/content.js');
+  assert.match(c, /lists\.seed/, 'blockedNames 에 시드가 없다');
+  assert.match(c, /slice\(0, 2500\)/, '시드 1,533개가 상한에 잘린다');
+});

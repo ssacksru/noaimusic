@@ -18,16 +18,18 @@
     }, window.location.origin);
   }
 
-  // 믹스 카드는 채널 ID 가 없어 이름으로만 잡을 수 있다
+  // 믹스 카드는 채널 ID 가 없어 이름으로만 잡을 수 있다.
+  // 시드 이름도 포함한다 — 빼면 시드 채널의 믹스가 그대로 살아남는다
+  // (최종 테스트 루프 5회차 실측 2026-08-22: "믹스 - balcony9" 잔존).
   function blockedNames(blocked) {
     const out = [];
-    for (const id in blocked) {
-      // 학습으로 들어온 항목은 값이 1 이라 이름이 없다 — profileNames 에서 가져온다
-      const v = blocked[id];
+    const push = (v, id) => {
       const n = (typeof v === 'string' && v.trim()) ? v : profileNames[id];
       if (typeof n === 'string' && n.trim()) out.push(n.trim());
-    }
-    return out.slice(0, 400);
+    };
+    for (const id in blocked) push(blocked[id], id);   // 학습 항목은 값이 1 — profileNames 에서
+    for (const id in lists.seed) if (!(id in blocked)) push(lists.seed[id], id);
+    return out.slice(0, 2500);
   }
   function aiProfiles() {
     const out = {};
