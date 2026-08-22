@@ -182,6 +182,8 @@
     if (has(lists.allowed, meta.channelId)) return { action: 'pass', reason: 'allowlist' };
     if (has(lists.blocked, meta.channelId)) return { action: 'block', reason: 'blocklist' };
     if (has(lists.seed, meta.channelId)) return { action: 'block', reason: 'seed' };
+    // 채널 카드는 여기까지 — 이름만 있는 카드에 키워드·믹스 휴리스틱을 대면 오탐만 는다
+    if (meta.isChannelCard) return { action: 'pass', reason: 'channel-card' };
 
     // 유튜브 자동생성 "믹스"는 채널 ID 가 없어 채널 차단으로 잡히지 않는다.
     // 대신 제목에 원본 채널명이 실려 온다("믹스 - [playlist] balcony9 | ...").
@@ -308,6 +310,17 @@
     for (const k of VIDEO_KEYS) if (obj[k]) return metaFromClassic(obj[k], false);
     for (const k of PLAYLIST_KEYS) if (obj[k]) return metaFromClassic(obj[k], true);
     if (obj.lockupViewModel) return metaFromLockup(obj.lockupViewModel);
+    // 검색의 채널 카드 — 영상은 걸러져도 채널 입구가 남으면 반쪽이다(실측 2026-08-22:
+    // balcony9 검색에 채널 카드 잔존). 목록(차단·시드·학습) ID 로만 지우고
+    // 휴리스틱은 적용하지 않는다 — 이름뿐인 카드에 추측은 오탐 위험만 있다.
+    const cr = obj.channelRenderer || obj.gridChannelRenderer;
+    if (cr && cr.channelId) {
+      return {
+        isChannelCard: true, channelId: cr.channelId,
+        channel: textOf(cr.title), title: textOf(cr.title),
+        videoId: '', views: null, durationSec: 0, isPlaylist: false,
+      };
+    }
     return null;
   }
 

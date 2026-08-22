@@ -265,3 +265,25 @@ test('설명란 "콘텐츠 생성 방식" 공시를 감지한다', () => {
   assert.equal(H.hasAiDisclosure({}), false);
   assert.equal(H.hasAiDisclosure(null) || false, false);
 });
+
+test('검색의 채널 카드 — 목록에 있는 채널만 지우고 이름 추측은 하지 않는다', () => {
+  // 영상은 걸러져도 채널 입구 카드가 검색에 남았다 (2026-08-22 실측: balcony9)
+  const cid = 'UC' + 'b'.repeat(22);
+  const item = { channelRenderer: { channelId: cid, title: { simpleText: 'balcony9' } } };
+  const meta = H.metaFromItem(item);
+  assert.equal(meta.isChannelCard, true);
+  assert.equal(H.evaluate(meta, { allowed: {}, blocked: {}, seed: { [cid]: 1 } }).action, 'block');
+  assert.equal(H.evaluate(meta, { allowed: {}, blocked: { [cid]: 'x' }, seed: {} }).action, 'block');
+  // 목록에 없으면 이름이 AI스러워도 통과 — 채널 카드엔 휴리스틱을 대지 않는다
+  const aiName = H.metaFromItem({ channelRenderer: { channelId: 'UC' + 'c'.repeat(22),
+    title: { simpleText: 'Suno AI Music Factory' } } });
+  assert.equal(H.evaluate(aiName, L).action, 'pass');
+  // 허용 목록이 이긴다
+  assert.equal(H.evaluate(meta, { allowed: { [cid]: 'x' }, blocked: {}, seed: { [cid]: 1 } }).action, 'pass');
+  // filterTree 에서 실제로 배열에서 빠지는지
+  const tree = { contents: [item, { videoRenderer: { videoId: 'v'.repeat(11),
+    title: { simpleText: '정상 영상' }, lengthText: { simpleText: '3:00' } } }] };
+  const r = H.filterTree(tree, { allowed: {}, blocked: {}, seed: { [cid]: 1 } });
+  assert.equal(r.removed.length, 1);
+  assert.equal(tree.contents.length, 1);
+});
