@@ -246,3 +246,16 @@ test('시드 채널의 믹스도 이름 매칭에 포함된다', () => {
   assert.match(c, /lists\.seed/, 'blockedNames 에 시드가 없다');
   assert.match(c, /slice\(0, 2500\)/, '시드 1,533개가 상한에 잘린다');
 });
+
+test('다국어 매니페스트가 완전하다', () => {
+  // default_locale + _locales 반쪽 상태면 설치가 거부된다 (2026-08-20 실측)
+  const m = JSON.parse(read('manifest.json'));
+  assert.equal(m.default_locale, 'en', '기본 로케일은 en (그 외 지역 전부 커버)');
+  for (const loc of ['en', 'ko']) {
+    const msgs = JSON.parse(read(`_locales/${loc}/messages.json`));
+    assert.ok(msgs.appName && msgs.appDesc, `_locales/${loc} 에 이름·설명이 없다`);
+    assert.ok(msgs.appDesc.message.length <= 132, `${loc} 설명이 스토어 요약 132자 제한 초과`);
+  }
+  assert.equal(m.name, '__MSG_appName__');
+  assert.match(read('tools/build.sh'), /_locales/, '빌드가 _locales 를 zip 에 담지 않는다');
+});

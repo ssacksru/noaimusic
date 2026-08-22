@@ -17,6 +17,11 @@ Object.values(m.icons).forEach((f) => out.add(f));
 Object.values(m.action.default_icon || {}).forEach((f) => out.add(f));
 for (const c of m.content_scripts) [...(c.js||[]), ...(c.css||[])].forEach((f) => out.add(f));
 for (const w of m.web_accessible_resources) w.resources.forEach((f) => out.add(f));
+// default_locale 선언 시 _locales 트리 필수 — 빠지면 설치 자체가 거부된다
+if (m.default_locale) {
+  const fs = require("fs");
+  for (const d of fs.readdirSync("_locales")) out.add("_locales/" + d + "/messages.json");
+}
 console.log([...out].join("\n"));
 ')
 

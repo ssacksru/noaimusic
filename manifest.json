@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "NoAI Music — AI 음악 플레이리스트 필터",
-  "version": "0.1.0",
-  "description": "유튜브 추천·검색·자동재생에서 AI로 만든 음악 플레이리스트를 걸러냅니다. 일반 영상은 건드리지 않습니다.",
+  "name": "__MSG_appName__",
+  "version": "0.1.1",
+  "default_locale": "en",
+  "description": "__MSG_appDesc__",
   "permissions": [
     "storage"
   ],
