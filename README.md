@@ -101,6 +101,6 @@ problem for us. The rest was collected from YouTube's own AI disclosures.
 
 ## License
 
-Code: MIT. Data files: CC BY 4.0. See [LICENSE](LICENSE).
+Code: MIT — see [LICENSE](LICENSE). Data files: CC BY 4.0 — see [LICENSE-DATA.md](LICENSE-DATA.md).
 
 Not affiliated with YouTube or Google.
