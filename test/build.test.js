@@ -185,7 +185,9 @@ test('보안 회귀 가드', () => {
                'src/badges.js','src/lists.js','popup/popup.js'].map(read).join('\n');
   assert.ok(!/\beval\s*\(|new Function\(|document\.write\(/.test(all), '원격코드/동적실행 패턴 유입');
   const urls = [...all.matchAll(/https?:\/\/([a-z0-9.-]+)/gi)].map((m) => m[1]);
-  const outside = urls.filter((h) => !/(^|\.)youtube\.com$/.test(h) && h !== 'souloverai.com' && h !== 'bit.ly');
+  // github.com·toss.me 는 팝업의 후원 링크(사용자가 눌러야만 열림) — fetch 대상이 아니다
+  const ALLOWED = ['souloverai.com', 'bit.ly', 'github.com', 'toss.me'];
+  const outside = urls.filter((h) => !/(^|\.)youtube\.com$/.test(h) && !ALLOWED.includes(h));
   assert.deepEqual([...new Set(outside)], [], 'youtube.com 밖으로 나가는 요청이 생겼다');
   const m = JSON.parse(read('manifest.json'));
   assert.equal(m.minimum_chrome_version, '111', 'world:MAIN 요구 버전 명시가 사라졌다');

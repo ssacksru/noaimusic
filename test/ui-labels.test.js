@@ -117,3 +117,15 @@ test('걸러낸 항목을 눌러 볼 수 있고, 그때는 건너뛰지 않는�
   assert.match(c, /!passActive\(curV, meta\.channelId\)/, '통행증이 건너뛰기를 막지 않는다');
   assert.match(c, /10 \* 60 \* 1000/.test(pj) ? /passActive/ : /NEVER/, '통행증에 만료가 없다');
 });
+
+test('후원 링크는 링크가 있을 때만, 팝업 안에서만 보인다', () => {
+  // 유튜브 페이지 주입은 정책 위험 — 후원 노출은 팝업 전용.
+  // 빈 링크로 죽은 버튼을 배포하는 사고 방지: 비면 줄 자체가 숨는다.
+  const js = read('popup/popup.js');
+  assert.match(js, /const DONATE_GLOBAL = /, '후원 링크 상수가 없다');
+  assert.match(js, /if \(!DONATE_GLOBAL && !DONATE_KR\) return;/, '링크가 비어도 후원 줄이 보인다');
+  const html = read('popup/popup.html');
+  assert.match(html, /id="donate"[^>]*display:none/, '기본 상태가 숨김이 아니다');
+  // 콘텐츠 스크립트에는 후원 관련 코드가 없어야 한다
+  assert.ok(!/donate|후원/i.test(read('src/content.js')), '유튜브 페이지에 후원이 노출된다');
+});

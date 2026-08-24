@@ -1,5 +1,10 @@
 'use strict';
 const $ = (id) => document.getElementById(id);
+
+// 후원 링크 — 비워두면 후원 줄 자체가 표시되지 않는다.
+// 기능은 아무것도 잠그지 않는다(웹스토어 '무료' 신고 유지 조건).
+const DONATE_GLOBAL = '';   // 예: https://github.com/sponsors/<계정>
+const DONATE_KR = '';       // 예: https://toss.me/<토스아이디>
 let tab = 'learned';
 
 function today() { return new Date().toISOString().slice(0, 10); }
@@ -197,6 +202,17 @@ async function renderNow() {
   } catch (e) { /* 시청 페이지가 아니거나 스크립트 미주입 — 조용히 숨긴다 */ }
 }
 renderNow();
+
+// 후원 줄 — 링크가 하나라도 있어야 보이고, 없는 쪽은 감춘다
+(() => {
+  if (!DONATE_GLOBAL && !DONATE_KR) return;
+  $('donate').style.display = '';
+  if (DONATE_GLOBAL) $('donate-global').href = DONATE_GLOBAL;
+  else $('donate-global').style.display = 'none';
+  if (DONATE_KR) $('donate-kr').href = DONATE_KR;
+  else $('donate-kr').style.display = 'none';
+  if (!DONATE_GLOBAL || !DONATE_KR) $('donate-sep').style.display = 'none';
+})();
 
 // 번들된 목록 개수는 파일에서 직접 읽어 화면과 데이터가 어긋나지 않게 한다
 (async () => {
