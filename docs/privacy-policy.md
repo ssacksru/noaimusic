@@ -40,4 +40,4 @@ youtube.com 의 시청 페이지 몇 개(채널당 최대 4개)와 그 채널의
 
 ## 문의
 
-kills.contact.0202@gmail.com
+contact@aidestudio.app
