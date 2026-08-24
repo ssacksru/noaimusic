@@ -9,6 +9,9 @@ recommendations, search results, and autoplay queue. Regular videos are left alo
 Free, no account, no analytics, no external servers. The only network traffic is to
 youtube.com itself.
 
+![Same search with the extension off and on](docs/screenshots/en/s1-compare.png)
+
+
 ## Why
 
 YouTube's music search is increasingly filled with channels that upload dozens of
@@ -49,6 +52,8 @@ The principle: AI channels mass-produce, but nobody listens (median 1,206 views 
 240,000 for human channels). Low view count on its own would punish new creators, so it
 only counts when hashtag spam appears with it. This layer can be turned off in the popup.
 
+![Detection layers](docs/screenshots/en/s4-method.png)
+
 ### Why channel-level checking
 
 Channels disclose inconsistently. One measured channel had the AI disclosure on only 4 of
@@ -56,6 +61,8 @@ its 8 most recent videos. So when a video looks clean, the extension checks a fe
 videos from the same channel (via the channel's public RSS feed) before caching a
 "not AI" verdict. A network failure is never cached as "not AI" — that bug was written
 twice during development and is now guarded by tests.
+
+![Popup showing what was filtered and why](docs/screenshots/en/s2-popup.png)
 
 ## Architecture
 
