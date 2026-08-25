@@ -23,24 +23,29 @@ const result = JSON.parse(fs.readFileSync(RESULT, 'utf8'));
 const current = JSON.parse(fs.readFileSync(OUT, 'utf8'));
 const seed = JSON.parse(fs.readFileSync(SEED, 'utf8')).channels;
 
-// 수집 결과의 채널 판정: 'ai' 인 것만 취한다
+// 수집기는 AI 로 판정된 채널만 기록한다 — 값은 채널 이름이다.
+// (판정을 명시한 {verdict, name} 형태도 받아준다)
 const found = {};
 for (const [cid, v] of Object.entries(result.channels || {})) {
-  const verdict = typeof v === 'string' ? v : (v && v.verdict);
-  const name = (v && v.channel) || (v && v.name) || '';
-  if (verdict !== 'ai') continue;
   if (!/^UC[\w-]{22}$/.test(cid)) continue;      // 형식 검증
-  found[cid] = name || cid;
+  if (v && typeof v === 'object') {
+    if (v.verdict && v.verdict !== 'ai') continue;
+    found[cid] = (v.name || v.channel || '').trim() || cid;
+  } else {
+    found[cid] = String(v || '').trim() || cid;
+  }
 }
 
 const before = Object.keys(current.channels).length;
-let added = 0, skippedSeed = 0;
+const addedNames = [];
+let skippedSeed = 0, skippedDup = 0;
 for (const [cid, name] of Object.entries(found)) {
   if (cid in seed) { skippedSeed++; continue; }   // 이미 다른 목록에 있음
-  if (cid in current.channels) continue;
+  if (cid in current.channels) { skippedDup++; continue; }
   current.channels[cid] = name;
-  added++;
+  addedNames.push(name);
 }
+const added = addedNames.length;
 
 if (!added) {
   console.log(`새 채널 없음 (수집 ${Object.keys(found).length}개 중 기존 ${skippedSeed}개는 시드에 이미 있음)`);
@@ -60,9 +65,7 @@ current.channels = sorted;
 
 fs.writeFileSync(OUT, JSON.stringify(current, null, 1) + '\n');
 console.log(`병합 완료: +${added}개 (${before} → ${before + added})`);
-console.log(`시드 중복 제외: ${skippedSeed}개`);
+console.log(`이미 있어 건너뜀: 시드 ${skippedSeed}개 · 수집목록 ${skippedDup}개`);
 console.log('\n새로 등재된 채널:');
-for (const [cid, name] of Object.entries(found).slice(0, 15)) {
-  if (current.channels[cid] === name) console.log(`  ${name} (${cid})`);
-}
+for (const name of addedNames.sort()) console.log(`  ${name}`);
 console.log('\n다음: npm test → manifest 버전 올리기 → npm run build → 스토어 제출');
