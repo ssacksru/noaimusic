@@ -63,17 +63,38 @@ test('전부 깨끗하면 그때야 아님으로 판정한다', async () => {
   assert.equal(r.verdict, 'ok');
 });
 
-test('확인 실패는 아님으로 굳지 않는다 — null 로 남겨 다시 시도하게 한다', async () => {
-  // 네트워크 실패가 '아님' 캐시가 되는 사고를 두 번 겪었다 (2026-08-20)
-  responses = [
-    ['watch?v=aaaaaaaaaaa', watchHtml()],
-    ['feeds/videos.xml', 'FAIL'],
-  ];
-  assert.equal(await B.checkChannel(CID, 'aaaaaaaaaaa', false, null), null);
+test('영상 확인 실패는 아님으로 굳지 않는다 — null 로 남겨 다시 시도하게 한다', async () => {
+  // 네트워크 실패가 '아님' 캐시가 되는 사고를 두 번 겪었다 (2026-08-20).
+  // 핵심 보장: **시청 페이지를 못 읽었으면** 어떤 판정도 내리지 않는다.
+  // (채널 목록을 못 얻은 경우는 다르다 — 실제로 확인한 영상의 판정이 있으므로
+  //  그걸 쓴다. 아래 '무한 재시도 방지' 테스트 참고. 2026-08-25 정책)
   responses = [
     ['watch?v=aaaaaaaaaaa', watchHtml()],
     ['feeds/videos.xml', rssXml(['bbbbbbbbbbb'])],
     ['watch?v=bbbbbbbbbbb', 'FAIL'],
   ];
   assert.equal(await B.checkChannel(CID, 'aaaaaaaaaaa', false, null), null);
+});
+
+test('RSS 가 막히면 채널 영상 페이지로 우회한다', async () => {
+  // 유튜브가 feeds/videos.xml 을 404 로 막는 것을 실측했다(2026-08-25).
+  // 한 경로에만 기대면 채널 단위 확인이 통째로 죽는다.
+  responses = [
+    ['feeds/videos.xml', 'FAIL'],
+    ['/videos', '"videoId":"bbbbbbbbbbb" ... "videoId":"ccccccccccc"'],
+  ];
+  const ids = await B.channelVideoIds(CID);
+  assert.deepEqual(ids, ['bbbbbbbbbbb', 'ccccccccccc']);
+});
+
+test('목록을 아예 못 얻으면 입구 영상 판정을 쓴다 (무한 재시도 방지)', async () => {
+  // null 을 돌려주면 캐시되지 않아 같은 채널을 영원히 다시 확인하고,
+  // 그 요청이 다시 차단을 부르는 되먹임이 생긴다.
+  responses = [
+    ['watch?v=aaaaaaaaaaa', watchHtml()],
+    ['feeds/videos.xml', 'FAIL'],
+    ['/videos', 'FAIL'],
+  ];
+  const r = await B.checkChannel(CID, 'aaaaaaaaaaa', false, null);
+  assert.equal(r.verdict, 'ok', '입구 판정으로 떨어져야 한다');
 });

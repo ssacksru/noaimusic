@@ -88,19 +88,42 @@
   // 채널 단위 확인 — 공시는 영상마다 들쭉날쭉 붙는다(실측 2026-08-21: 한 AI 채널의
   // 최근 8개 중 4개만 설명란 공시). 입구 영상이 깨끗해도 채널의 다른 영상을
   // 몇 개 더 보고 나서야 '아님'으로 캐시한다. RSS 는 공개 XML 이라 쿠키가 필요 없다.
+  // 채널의 최근 영상 ID 목록. null = 목록을 못 얻음(판정 보류).
+  //
+  // RSS(feeds/videos.xml)를 먼저 쓰고, 막히면 채널 영상 페이지에서 직접 읽는다.
+  // 유튜브가 RSS 를 404 로 막는 것을 실측했다(2026-08-25) — 한 경로에만 기대면
+  // 채널 단위 확인이 통째로 죽는다.
   async function channelVideoIds(channelId) {
-    const r = await fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId);
-    if (!r.ok) return null;
-    const xml = await r.text();
-    return [...xml.matchAll(/<yt:videoId>([\w-]{11})<\/yt:videoId>/g)].map((m) => m[1]);
+    try {
+      const r = await fetch('https://www.youtube.com/feeds/videos.xml?channel_id=' + channelId);
+      if (r.ok) {
+        const xml = await r.text();
+        const ids = [...xml.matchAll(/<yt:videoId>([\w-]{11})<\/yt:videoId>/g)].map((m) => m[1]);
+        if (ids.length) return ids;
+      }
+    } catch (e) { /* 다음 경로로 */ }
+    try {
+      const r = await fetch('https://www.youtube.com/channel/' + channelId + '/videos');
+      if (!r.ok) return null;
+      const html = await r.text();
+      const ids = [];
+      const seen = new Set();
+      for (const m of html.matchAll(/"videoId":"([\w-]{11})"/g)) {
+        if (!seen.has(m[1])) { seen.add(m[1]); ids.push(m[1]); }
+        if (ids.length >= 30) break;
+      }
+      return ids.length ? ids : null;
+    } catch (e) { return null; }
   }
 
   async function checkChannel(channelId, videoId, useGuess, views) {
     const first = await checkVideo(videoId, useGuess, views);
     if (!first || first.verdict === 'ai') return first;
     let ids;
-    try { ids = await channelVideoIds(channelId); } catch (e) { return null; }
-    if (ids === null) return null;
+    try { ids = await channelVideoIds(channelId); } catch (e) { ids = null; }
+    // 목록을 못 얻으면 입구 영상의 판정을 그대로 쓴다. null 을 돌려주면 이 채널은
+    // 영영 캐시되지 않아 같은 확인을 무한 반복하고, 그 요청이 다시 차단을 부른다.
+    if (ids === null) return first;
     ids = ids.filter((v) => v !== videoId);
     // 최신·중간·오래된 쪽에서 하나씩 — 미공시가 몰린 구간에 다 걸리지 않게 흩어 본다
     const picks = [...new Set([ids[0], ids[Math.floor(ids.length / 2)], ids[ids.length - 1]])]

@@ -51,6 +51,10 @@
     'i'
   );
 
+  // 음악 밖에서도 흔히 쓰이는 맥락어 — 이것 하나만으로는 음악이라 판단하지 않는다.
+  // (장르어는 여기 없다: jazz·피아노·lofi 는 하나만 나와도 음악으로 본다)
+  const MUSIC_AMBIGUOUS = /^(카페|cafe|힐링|수면|태교|chill|relax|relaxing|radio|pop|rock|soul|trap|house|country|vibe|vibes|track|tracks|hit|hits|beat|beats|album|band|tune|tunes|groove|study)$/i;
+
   const LONG_VIDEO_SEC = 20 * 60;
 
   // ── 2단계: AI 신호 ──────────────────────────────────────────
@@ -199,7 +203,18 @@
     // 음악 관문 2단.
     // musicish = 음악 얘기가 나오는가 (AI 증거가 확실할 때 이것만으로 충분 — AI 커버 단일곡은 3분짜리다)
     // musicContent = 듣기용 음악 콘텐츠인가 (맨몸 "AI" 토큰처럼 약한 증거엔 이 수준을 요구)
-    const musicish = MUSIC_STRONG.test(text) || MUSIC_WEAK.test(text);
+    // 약한 음악어 중에도 두 부류가 있다.
+    //  · 장르어(jazz·피아노·lofi…)는 하나만 나와도 음악이라고 봐도 된다.
+    //  · 맥락어(카페·힐링·수면·pop·radio…)는 음악 밖에서도 흔히 쓰인다. 한국어는
+    //    띄어쓰기가 없어 '주식카페'·'맘카페'처럼 낱말 안에 박히기까지 한다.
+    // 그래서 맥락어는 **혼자서는 근거가 되지 못하게** 하고, 둘 이상 겹칠 때만 인정한다.
+    // (실사용 사고 2026-08-25: 주식 채널 '주식카페_주식단테사단'이 '카페' 하나로 학습됨)
+    const hits = new Set(
+      (text.match(new RegExp(MUSIC_WEAK.source, 'gi')) || []).map((w) => w.toLowerCase().trim())
+    );
+    let genreHit = false, contextHits = 0;
+    for (const w of hits) (MUSIC_AMBIGUOUS.test(w) ? contextHits++ : (genreHit = true));
+    const musicish = MUSIC_STRONG.test(text) || genreHit || contextHits >= 2;
     if (!musicish) return { action: 'pass', reason: 'not-music' };
     const musicContent =
       MUSIC_STRONG.test(text) || meta.isPlaylist || (meta.durationSec || 0) >= LONG_VIDEO_SEC;

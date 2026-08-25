@@ -83,9 +83,32 @@ const save = async (state) => fs.writeFileSync(OUT, JSON.stringify(state));
         const r = JSON.parse(await b.eval(`
           (async () => {
             try {
-              const html = await (await fetch('https://www.youtube.com/watch?v=${it.v}', { credentials:'omit' })).text();
-              const bs = watchBadges(html);
-              return JSON.stringify({ ai: bs === null ? null : bs.some(isAiBadge) });
+              // 쿠키를 반드시 실어 보낸다 — 옵션을 붙이지 않는 것이 그 방법이다.
+              // credentials:'omit' 이면 유튜브가 시청 페이지를 거부한다(실측 2026-08-20).
+              const html = await (await fetch('https://www.youtube.com/watch?v=${it.v}')).text();
+              // 판별을 여기서 직접 한다. 서비스워커에는 watchBadges 가 없어서 예전 코드는
+              // 모든 확인이 예외로 떨어졌고, 수집이 통째로 죽어 있었다
+              // (실측 2026-08-25: 신규 검색어로 돌리자 즉시 "요청이 막힘" 으로 중단).
+              const m = html.match(/var ytInitialData\\s*=\\s*(\\{.+?\\});<\\/script>/s);
+              if (!m) return JSON.stringify({ ai: null });
+              const d = JSON.parse(m[1]);
+              let badge = false, disclosure = false;
+              try {
+                const cs = d.contents.twoColumnWatchNextResults.results.results.contents;
+                const pri = (cs.find((x) => x.videoPrimaryInfoRenderer) || {}).videoPrimaryInfoRenderer;
+                for (const bb of (pri.badges || [])) {
+                  const mb = bb.metadataBadgeRenderer || {};
+                  if ((mb.icon || {}).iconType === 'INFO' && mb.style === 'BADGE_STYLE_TYPE_SIMPLE') badge = true;
+                }
+              } catch (e) { /* 배지 없음 */ }
+              try {
+                for (const ep of d.engagementPanels || []) {
+                  const items = (((ep.engagementPanelSectionListRenderer || {}).content || {})
+                    .structuredDescriptionContentRenderer || {}).items || [];
+                  for (const it2 of items) if (it2 && it2.howThisWasMadeSectionViewModel) disclosure = true;
+                }
+              } catch (e) { /* 설명란 공시 없음 */ }
+              return JSON.stringify({ ai: badge || disclosure });
             } catch (e) { return JSON.stringify({ err: String(e.message || e).slice(0, 60) }); }
           })()
         `));

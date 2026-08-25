@@ -278,3 +278,14 @@ test('구독 중인 채널은 어떤 경우에도 건드리지 않는다', () =>
   assert.match(read('src/page.js'), /subscribed,/, '구독 여부를 전달하지 않는다');
   assert.match(read('src/content.js'), /if \(wm && wm\.subscribed\)/, '구독 채널을 보호하지 않는다');
 });
+
+test('수집기도 시청 페이지에 쿠키를 실어 보낸다', () => {
+  // 확장에서 2026-08-20 에 고친 버그가 수집기에는 남아 있었다 — 시청 페이지를
+  // credentials:'omit' 으로 요청해 전부 거부당했고, 그래서 수집이 조용히 멈춰 있었다.
+  // (2026-08-25 실측: 신규 검색어 29종으로 돌리자 즉시 "요청이 막힘"으로 중단)
+  const h = read('tools/harvest.js');
+  const watchFetch = h.match(/fetch\('https:\/\/www\.youtube\.com\/watch\?v=[^)]*\)/);
+  assert.ok(watchFetch, '시청 페이지 요청을 찾지 못했다');
+  assert.ok(!/credentials/.test(watchFetch[0]), "시청 페이지에 credentials 옵션을 붙이면 안 된다");
+  assert.match(h, /howThisWasMadeSectionViewModel/, '설명란 공시를 보지 않는다 — 확장과 기준이 어긋난다');
+});

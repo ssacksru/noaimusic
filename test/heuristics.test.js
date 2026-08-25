@@ -307,3 +307,26 @@ test('음악과 무관한 낱말 속 부분일치를 음악으로 보지 않는�
       'not-music', `음악인데 놓쳤다: ${title}`);
   }
 });
+
+test('맥락어 하나만으로는 음악으로 보지 않는다', () => {
+  // 실사용 사고 2026-08-25: 주식 채널 '주식카페_주식단테사단'이 '카페' 하나로 음악
+  // 판정을 받고, 프로파일링을 거쳐 AI 채널로 학습됐다.
+  // 카페·힐링·수면·pop 같은 맥락어는 음악 밖에서도 흔히 쓰이고, 한국어는 띄어쓰기가
+  // 없어 낱말 안에까지 박힌다. 장르어(jazz·피아노)는 하나만 나와도 인정한다.
+  const meta = (title, channel) => ({ title, channel, channelId: 'UC' + 'q'.repeat(22),
+    durationSec: 9999, isPlaylist: false });
+  for (const [t, c] of [
+    ['주식투자에도 타이밍이 있다? 제발 이 시간에만 주식투자 하세요', '주식카페_주식단테사단'],
+    ['맘카페에서 화제된 육아템 총정리', '육아TV'],
+    ['이 게임 트랩 구간 공략', '게임채널'],
+  ]) assert.equal(ev(meta(t, c)).reason, 'not-music', `맥락어 하나로 음악 판정: ${t}`);
+
+  // 장르어 단독은 그대로 음악
+  for (const [t, c] of [
+    ['no rush./ soft and smooth japanese jazz', 'Woodie FM'],
+    ['조용한 피아노 한 시간', '무명채널'],
+  ]) assert.notEqual(ev(meta(t, c)).reason, 'not-music', `장르어인데 놓쳤다: ${t}`);
+
+  // 맥락어 둘 이상이면 음악
+  assert.notEqual(ev(meta('chill relaxing cafe sounds', '')).reason, 'not-music');
+});
