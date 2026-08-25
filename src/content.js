@@ -394,7 +394,13 @@
 
     // 유튜브가 직접 AI라고 표시했으면 그 채널을 확정 처리한다 —
     // 이후 이 채널은 피드·검색·자동재생에서 전부 사라진다.
-    const labeled = v.reason !== 'allowlist' && ((wm && wm.aiLabeled) || youtubeAiBadge());
+    // 유튜브 AI 공시가 붙었어도 **음악일 때만** 차단·학습한다.
+    // 공시는 AI 도구를 조금이라도 쓰면 붙는다 — 게임 실황의 AI 썸네일·AI 더빙에도 붙는다.
+    // 음악 관문 없이 공시만 보면 게임·주식 채널까지 AI 음악으로 학습해 버린다
+    // (실사용 사고 2026-08-25: 삼국지13 게임 채널이 스킵되고 학습까지 됐다).
+    const isMusic = v.reason !== 'not-music';
+    const labeled = isMusic && v.reason !== 'allowlist'
+      && ((wm && wm.aiLabeled) || youtubeAiBadge());
     if (labeled) {
       if (meta.channelId && profiles[meta.channelId] !== 'ai') {
         profiles[meta.channelId] = 'ai';

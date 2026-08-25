@@ -287,3 +287,23 @@ test('검색의 채널 카드 — 목록에 있는 채널만 지우고 이름 �
   assert.equal(r.removed.length, 1);
   assert.equal(tree.contents.length, 1);
 });
+
+test('음악과 무관한 낱말 속 부분일치를 음악으로 보지 않는다', () => {
+  // 실사용 사고 2026-08-25: 주식 채널 "머니코믹스"가 '코믹스' 안의 '믹스' 때문에
+  // 음악으로 분류되고, 그 뒤 프로파일링을 거쳐 AI 채널로 학습됐다.
+  const nonMusic = [
+    ['주식하면서 매수, 매도밖에 모르면 어떡해', '머니코믹스 Money Comics'],
+    ['삼국지13pk 종회의 반란, 강유북벌 시나리오 -2화-', '밀덕형'],
+    ['세라믹스 공정 기초', '소재공학'],
+    ['이코노믹스 101', '경제채널'],
+  ];
+  for (const [title, channel] of nonMusic) {
+    assert.equal(ev({ title, channel, channelId: 'UC' + 'z'.repeat(22), durationSec: 9999, isPlaylist: false }).reason,
+      'not-music', `음악이 아닌데 음악으로 봤다: ${title}`);
+  }
+  // 진짜 믹스·리믹스는 계속 음악으로 인식해야 한다
+  for (const [title, channel] of [['믹스 - [playlist] balcony9 | Quiet Jazz', ''], ['여름밤 리믹스 모음', '']]) {
+    assert.notEqual(ev({ title, channel, channelId: 'UC' + 'y'.repeat(22), durationSec: 9999, isPlaylist: false }).reason,
+      'not-music', `음악인데 놓쳤다: ${title}`);
+  }
+});

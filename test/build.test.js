@@ -261,3 +261,12 @@ test('다국어 매니페스트가 완전하다', () => {
   assert.equal(m.name, '__MSG_appName__');
   assert.match(read('tools/build.sh'), /_locales/, '빌드가 _locales 를 zip 에 담지 않는다');
 });
+
+test('유튜브 AI 공시는 음악일 때만 차단·학습으로 이어진다', () => {
+  // 실사용 사고 2026-08-25: 게임 실황 채널(삼국지13)이 스킵되고 AI 채널로 학습됐다.
+  // 원인 — 시청 페이지 경로가 음악 관문을 건너뛰고 공시만 보고 판단했다.
+  // 공시는 AI 썸네일·AI 더빙만 써도 붙기 때문에 음악 필터의 근거로는 단독으로 못 쓴다.
+  const c = read('src/content.js');
+  assert.match(c, /const isMusic = v\.reason !== 'not-music'/, '음악 여부를 따지지 않는다');
+  assert.match(c, /const labeled = isMusic &&/, '공시가 음악 관문을 우회한다');
+});
