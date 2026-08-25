@@ -79,7 +79,14 @@
         views = H.parseViews((vc.viewCount && (vc.viewCount.simpleText ||
           (vc.viewCount.runs || []).map((r) => r.text).join(''))) || '');
       } catch (e) { /* 없으면 null */ }
+      // 구독 중인 채널인가 — 사용자가 직접 고른 채널이라는 가장 강한 증거다.
+      // 이걸 알면 "내가 보는 채널이 차단됐다"는 사고를 원천에서 막을 수 있다.
+      let subscribed = false;
+      try {
+        subscribed = !!sec.subscribeButton.subscribeButtonRenderer.subscribed;
+      } catch (e) { /* 로그아웃 등으로 없으면 false */ }
       post('NAM_WATCH', {
+        subscribed,
         views,
         nextVideoId: apId || H.firstVideoId(wn.secondaryResults) || '',
         videoId: (data.currentVideoEndpoint && data.currentVideoEndpoint.watchEndpoint &&

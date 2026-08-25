@@ -270,3 +270,11 @@ test('유튜브 AI 공시는 음악일 때만 차단·학습으로 이어진다'
   assert.match(c, /const isMusic = v\.reason !== 'not-music'/, '음악 여부를 따지지 않는다');
   assert.match(c, /const labeled = isMusic &&/, '공시가 음악 관문을 우회한다');
 });
+
+test('구독 중인 채널은 어떤 경우에도 건드리지 않는다', () => {
+  // 사용자가 직접 구독한 채널을 필터가 가로채는 건 최악의 오작동이다.
+  // 구독 여부는 시청 데이터에 실려 온다(subscribeButtonRenderer.subscribed, 실측 2026-08-25).
+  assert.match(read('src/page.js'), /subscribeButtonRenderer\.subscribed/, '구독 여부를 읽지 않는다');
+  assert.match(read('src/page.js'), /subscribed,/, '구독 여부를 전달하지 않는다');
+  assert.match(read('src/content.js'), /if \(wm && wm\.subscribed\)/, '구독 채널을 보호하지 않는다');
+});

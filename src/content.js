@@ -398,6 +398,13 @@
     // 공시는 AI 도구를 조금이라도 쓰면 붙는다 — 게임 실황의 AI 썸네일·AI 더빙에도 붙는다.
     // 음악 관문 없이 공시만 보면 게임·주식 채널까지 AI 음악으로 학습해 버린다
     // (실사용 사고 2026-08-25: 삼국지13 게임 채널이 스킵되고 학습까지 됐다).
+    // 구독 중이면 무엇으로 판정됐든 건드리지 않는다. 사용자가 직접 구독한 채널을
+    // 필터가 가로채는 건 이 확장이 저지를 수 있는 가장 나쁜 오작동이다.
+    if (wm && wm.subscribed) {
+      const old0 = document.getElementById('nam-banner');
+      if (old0) old0.remove();
+      return;
+    }
     const isMusic = v.reason !== 'not-music';
     const labeled = isMusic && v.reason !== 'allowlist'
       && ((wm && wm.aiLabeled) || youtubeAiBadge());
