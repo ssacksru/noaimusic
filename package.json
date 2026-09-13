@@ -6,6 +6,8 @@
   "scripts": {
     "sync": "cp src/heuristics.js src/heuristics.iso.js",
     "test": "npm run sync --silent && node --test \"test/*.test.js\"",
-    "build": "bash tools/build.sh"
+    "build": "bash tools/build.sh",
+    "build:safari": "bash tools/build-safari.sh",
+    "archive:safari": "bash tools/build-safari.sh archive"
   }
 }

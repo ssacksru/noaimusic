@@ -1,0 +1,619 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		691E4E1430564ABF0075A20A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691E4E1330564ABF0075A20A /* AppDelegate.swift */; };
+		691E4E1830564ABF0075A20A /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E1630564ABF0075A20A /* Main.html */; };
+		691E4E1A30564ABF0075A20A /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E1930564ABF0075A20A /* Icon.png */; };
+		691E4E1C30564ABF0075A20A /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E1B30564ABF0075A20A /* Style.css */; };
+		691E4E1E30564ABF0075A20A /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E1D30564ABF0075A20A /* Script.js */; };
+		691E4E2030564ABF0075A20A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691E4E1F30564ABF0075A20A /* ViewController.swift */; };
+		691E4E2330564ABF0075A20A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E2130564ABF0075A20A /* Main.storyboard */; };
+		691E4E2530564AC00075A20A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E2430564AC00075A20A /* Assets.xcassets */; };
+		691E4E2C30564AC00075A20A /* NoAI Music Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 691E4E2B30564AC00075A20A /* NoAI Music Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		691E4E3130564AC00075A20A /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 691E4E3030564AC00075A20A /* SafariWebExtensionHandler.swift */; };
+		691E4E4330564AC00075A20A /* popup in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E3D30564AC00075A20A /* popup */; };
+		691E4E4430564AC00075A20A /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E3E30564AC00075A20A /* icons */; };
+		691E4E4530564AC00075A20A /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E3F30564AC00075A20A /* manifest.json */; };
+		691E4E4630564AC00075A20A /* _locales in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E4030564AC00075A20A /* _locales */; };
+		691E4E4730564AC00075A20A /* data in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E4130564AC00075A20A /* data */; };
+		691E4E4830564AC00075A20A /* src in Resources */ = {isa = PBXBuildFile; fileRef = 691E4E4230564AC00075A20A /* src */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		691E4E2D30564AC00075A20A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 691E4E0830564ABF0075A20A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 691E4E2A30564AC00075A20A;
+			remoteInfo = "NoAI Music Extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		691E4E3830564AC00075A20A /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				691E4E2C30564AC00075A20A /* NoAI Music Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		691E4E1030564ABF0075A20A /* NoAI Music.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NoAI Music.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		691E4E1330564ABF0075A20A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		691E4E1730564ABF0075A20A /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		691E4E1930564ABF0075A20A /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		691E4E1B30564ABF0075A20A /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		691E4E1D30564ABF0075A20A /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		691E4E1F30564ABF0075A20A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		691E4E2230564ABF0075A20A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		691E4E2430564AC00075A20A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		691E4E2630564AC00075A20A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		691E4E2B30564AC00075A20A /* NoAI Music Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "NoAI Music Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		691E4E3030564AC00075A20A /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		691E4E3230564AC00075A20A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		691E4E3D30564AC00075A20A /* popup */ = {isa = PBXFileReference; lastKnownFileType = folder; name = popup; path = Resources/popup; sourceTree = "<group>"; };
+		691E4E3E30564AC00075A20A /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = Resources/icons; sourceTree = "<group>"; };
+		691E4E3F30564AC00075A20A /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		691E4E4030564AC00075A20A /* _locales */ = {isa = PBXFileReference; lastKnownFileType = folder; name = _locales; path = Resources/_locales; sourceTree = "<group>"; };
+		691E4E4130564AC00075A20A /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = Resources/data; sourceTree = "<group>"; };
+		691E4E4230564AC00075A20A /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; name = src; path = Resources/src; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		691E4E0D30564ABF0075A20A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		691E4E2830564AC00075A20A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		691E4E0730564ABF0075A20A = {
+			isa = PBXGroup;
+			children = (
+				691E4E1230564ABF0075A20A /* NoAI Music */,
+				691E4E2F30564AC00075A20A /* NoAI Music Extension */,
+				691E4E1130564ABF0075A20A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		691E4E1130564ABF0075A20A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				691E4E1030564ABF0075A20A /* NoAI Music.app */,
+				691E4E2B30564AC00075A20A /* NoAI Music Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		691E4E1230564ABF0075A20A /* NoAI Music */ = {
+			isa = PBXGroup;
+			children = (
+				691E4E1330564ABF0075A20A /* AppDelegate.swift */,
+				691E4E1F30564ABF0075A20A /* ViewController.swift */,
+				691E4E2130564ABF0075A20A /* Main.storyboard */,
+				691E4E2430564AC00075A20A /* Assets.xcassets */,
+				691E4E2630564AC00075A20A /* Info.plist */,
+				691E4E1530564ABF0075A20A /* Resources */,
+			);
+			path = "NoAI Music";
+			sourceTree = "<group>";
+		};
+		691E4E1530564ABF0075A20A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				691E4E1630564ABF0075A20A /* Main.html */,
+				691E4E1930564ABF0075A20A /* Icon.png */,
+				691E4E1B30564ABF0075A20A /* Style.css */,
+				691E4E1D30564ABF0075A20A /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		691E4E2F30564AC00075A20A /* NoAI Music Extension */ = {
+			isa = PBXGroup;
+			children = (
+				691E4E3C30564AC00075A20A /* Resources */,
+				691E4E3030564AC00075A20A /* SafariWebExtensionHandler.swift */,
+				691E4E3230564AC00075A20A /* Info.plist */,
+			);
+			path = "NoAI Music Extension";
+			sourceTree = "<group>";
+		};
+		691E4E3C30564AC00075A20A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				691E4E3D30564AC00075A20A /* popup */,
+				691E4E3E30564AC00075A20A /* icons */,
+				691E4E3F30564AC00075A20A /* manifest.json */,
+				691E4E4030564AC00075A20A /* _locales */,
+				691E4E4130564AC00075A20A /* data */,
+				691E4E4230564AC00075A20A /* src */,
+			);
+			name = Resources;
+			path = "NoAI Music Extension";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		691E4E0F30564ABF0075A20A /* NoAI Music */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 691E4E3930564AC00075A20A /* Build configuration list for PBXNativeTarget "NoAI Music" */;
+			buildPhases = (
+				691E4E0C30564ABF0075A20A /* Sources */,
+				691E4E0D30564ABF0075A20A /* Frameworks */,
+				691E4E0E30564ABF0075A20A /* Resources */,
+				691E4E3830564AC00075A20A /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				691E4E2E30564AC00075A20A /* PBXTargetDependency */,
+			);
+			name = "NoAI Music";
+			packageProductDependencies = (
+			);
+			productName = "NoAI Music";
+			productReference = 691E4E1030564ABF0075A20A /* NoAI Music.app */;
+			productType = "com.apple.product-type.application";
+		};
+		691E4E2A30564AC00075A20A /* NoAI Music Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 691E4E3530564AC00075A20A /* Build configuration list for PBXNativeTarget "NoAI Music Extension" */;
+			buildPhases = (
+				691E4E2730564AC00075A20A /* Sources */,
+				691E4E2830564AC00075A20A /* Frameworks */,
+				691E4E2930564AC00075A20A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "NoAI Music Extension";
+			packageProductDependencies = (
+			);
+			productName = "NoAI Music Extension";
+			productReference = 691E4E2B30564AC00075A20A /* NoAI Music Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		691E4E0830564ABF0075A20A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					691E4E0F30564ABF0075A20A = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					691E4E2A30564AC00075A20A = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = 691E4E0B30564ABF0075A20A /* Build configuration list for PBXProject "NoAI Music" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 691E4E0730564ABF0075A20A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 691E4E1130564ABF0075A20A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				691E4E0F30564ABF0075A20A /* NoAI Music */,
+				691E4E2A30564AC00075A20A /* NoAI Music Extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		691E4E0E30564ABF0075A20A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				691E4E1A30564ABF0075A20A /* Icon.png in Resources */,
+				691E4E2330564ABF0075A20A /* Main.storyboard in Resources */,
+				691E4E1E30564ABF0075A20A /* Script.js in Resources */,
+				691E4E1830564ABF0075A20A /* Main.html in Resources */,
+				691E4E2530564AC00075A20A /* Assets.xcassets in Resources */,
+				691E4E1C30564ABF0075A20A /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		691E4E2930564AC00075A20A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				691E4E4330564AC00075A20A /* popup in Resources */,
+				691E4E4530564AC00075A20A /* manifest.json in Resources */,
+				691E4E4630564AC00075A20A /* _locales in Resources */,
+				691E4E4830564AC00075A20A /* src in Resources */,
+				691E4E4430564AC00075A20A /* icons in Resources */,
+				691E4E4730564AC00075A20A /* data in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		691E4E0C30564ABF0075A20A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				691E4E2030564ABF0075A20A /* ViewController.swift in Sources */,
+				691E4E1430564ABF0075A20A /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		691E4E2730564AC00075A20A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				691E4E3130564AC00075A20A /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		691E4E2E30564AC00075A20A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 691E4E2A30564AC00075A20A /* NoAI Music Extension */;
+			targetProxy = 691E4E2D30564AC00075A20A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		691E4E1630564ABF0075A20A /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				691E4E1730564ABF0075A20A /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		691E4E2130564ABF0075A20A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				691E4E2230564ABF0075A20A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		691E4E3330564AC00075A20A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		691E4E3430564AC00075A20A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		691E4E3630564AC00075A20A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NoAI Music Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NoAI Music Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 AIDE. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.3;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidestudio.noaimusic.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		691E4E3730564AC00075A20A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NoAI Music Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NoAI Music Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 AIDE. All rights reserved.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.1.3;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidestudio.noaimusic.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		691E4E3A30564AC00075A20A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NoAI Music/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NoAI Music";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 AIDE. All rights reserved.";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.3;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidestudio.noaimusic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		691E4E3B30564AC00075A20A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "NoAI Music/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "NoAI Music";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 AIDE. All rights reserved.";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 0.1.3;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = app.aidestudio.noaimusic;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		691E4E0B30564ABF0075A20A /* Build configuration list for PBXProject "NoAI Music" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				691E4E3330564AC00075A20A /* Debug */,
+				691E4E3430564AC00075A20A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		691E4E3530564AC00075A20A /* Build configuration list for PBXNativeTarget "NoAI Music Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				691E4E3630564AC00075A20A /* Debug */,
+				691E4E3730564AC00075A20A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		691E4E3930564AC00075A20A /* Build configuration list for PBXNativeTarget "NoAI Music" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				691E4E3A30564AC00075A20A /* Debug */,
+				691E4E3B30564AC00075A20A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 691E4E0830564ABF0075A20A /* Project object */;
+}

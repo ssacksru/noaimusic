@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- 수동 서명: 자동은 ASC API 키 권한 부족으로 "Cloud signing permission error" (가이드 §7.5) -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>destination</key>
+	<string>export</string>
+	<key>teamID</key>
+	<string>DS8Q52AV7Y</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<!-- 동명 Apple Distribution 이 2개(AIDE(KR)·BOOBONG SEOK)라 SHA-1 로 고정 -->
+	<key>signingCertificate</key>
+	<string>7EB57805BD6493978B2435D8050FC3444D048AAF</string>
+	<key>installerSigningCertificate</key>
+	<string>AFD0E8688ECDEA92BBBFEBF59EE501B6799F6A7E</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>app.aidestudio.noaimusic</key>
+		<string>NoAI Music Mac App Store</string>
+		<key>app.aidestudio.noaimusic.Extension</key>
+		<string>NoAI Music Extension Mac App Store</string>
+	</dict>
+	<key>uploadSymbols</key>
+	<true/>
+</dict>
+</plist>

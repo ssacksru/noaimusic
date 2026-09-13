@@ -5,3 +5,9 @@ dist/
 # 로컬 전용 — 공개 저장소에 넣지 않는다 (마케팅 계획·경쟁 분석·내부 보안 검토)
 docs/private/
 .claude/
+
+# Safari 래퍼 — 확장 리소스는 tools/build-safari.sh 가 dist zip 에서 동기화, 빌드 산출물은 커밋하지 않는다
+safari/NoAI Music/NoAI Music Extension/Resources/
+safari/build/
+safari/**/xcuserdata/
+__pycache__/

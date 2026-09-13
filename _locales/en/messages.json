@@ -1,4 +1,8 @@
 {
-  "appName": { "message": "NoAI Music — AI Music Playlist Filter" },
-  "appDesc": { "message": "Filters AI-generated music playlists out of YouTube recommendations, search, and autoplay. Regular videos are left untouched." }
+  "appName": {
+    "message": "NoAI Music — AI Music Playlist Filter"
+  },
+  "appDesc": {
+    "message": "Filters AI-generated music playlists out of YouTube recommendations, search, and autoplay. Real videos stay."
+  }
 }

@@ -257,6 +257,8 @@ test('다국어 매니페스트가 완전하다', () => {
     const msgs = JSON.parse(read(`_locales/${loc}/messages.json`));
     assert.ok(msgs.appName && msgs.appDesc, `_locales/${loc} 에 이름·설명이 없다`);
     assert.ok(msgs.appDesc.message.length <= 132, `${loc} 설명이 스토어 요약 132자 제한 초과`);
+    // Safari 확장은 112자 — altool 검증에서 en 125자로 거부됐다 (2026-09-13 실측, 오류 90862)
+    assert.ok(msgs.appDesc.message.length <= 112, `${loc} 설명이 Safari 확장 112자 제한 초과`);
   }
   assert.equal(m.name, '__MSG_appName__');
   assert.match(read('tools/build.sh'), /_locales/, '빌드가 _locales 를 zip 에 담지 않는다');

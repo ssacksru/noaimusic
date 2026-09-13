@@ -10,6 +10,20 @@
    (배포본을 쓰려면 `npm run build` 로 만든 `dist/noaimusic-*.zip` 을 풀어서 그 폴더를 선택)
 3. 유튜브를 열면 툴바 아이콘 배지에 이 페이지에서 걸러낸 개수가 표시된다
 
+### Safari (macOS)
+
+같은 코드를 Mac 앱으로 감싼 Safari 확장이다. Safari 18 이상(macOS 13 이상)이 필요하다.
+Mac App Store 등록 전까지는 직접 빌드해 설치한다 (Xcode 필요):
+
+```bash
+npm run build:safari   # 테스트 → zip → Xcode 빌드 → ~/Applications/NoAI Music.app 설치
+```
+
+1. `NoAI Music.app` 을 한 번 실행하면 Safari 설정 › 확장 프로그램 목록에 나타난다. 체크해서 켠다
+2. 유튜브를 열고 **툴바의 NoAI Music 아이콘 → "이 웹사이트에서 항상 허용"** 을 누른다.
+   Safari 는 이 허용 전까지 확장을 아예 실행하지 않는다 (크롬과 다른 점)
+3. 설정은 기기 간 동기화되지 않는다 (Safari 는 `storage.sync` 를 로컬처럼 다룬다)
+
 ## 어떻게 걸러내나 — 5층 판별
 
 순서대로 판정하고, 먼저 걸리면 거기서 끝난다.
@@ -152,7 +166,12 @@ DOM에서 카드만 숨기는 방식은 자동재생을 막지 못한다(유튜�
 npm test          # 판별 로직·자동재생 승계·실측 구조·UI 문구 검증 (35건)
 npm run build     # 테스트 통과 시에만 dist/noaimusic-<버전>.zip 생성
 npm run sync      # heuristics.iso.js 사본 갱신 (test 가 먼저 실행한다)
+npm run build:safari    # Safari 래퍼 앱 개발 빌드 + 설치 (safari/ 의 Xcode 프로젝트 사용)
+npm run archive:safari  # Mac App Store 용 Release 아카이브 → safari/build/export/NoAI Music.pkg
 ```
+
+`safari/` 는 `xcrun safari-web-extension-converter` 가 만든 Xcode 프로젝트다. 확장 리소스는
+커밋하지 않고 빌드 때마다 `dist/*.zip` 에서 동기화한다 — 크롬과 Safari 가 항상 같은 파일을 쓴다.
 
 `tools/harvest.js` 는 AI 채널 수집기다. CDP 로 붙은 크롬에서 검색어를 돌며
 유튜브 AI 공시 배지를 확인해 `data/ai-channels.json` 을 키운다.
