@@ -339,10 +339,12 @@
     try { sessionStorage.removeItem('nam-skipped'); } catch (e) {}
     if (Date.now() - info.at > 15000 || document.getElementById('nam-toast')) return;
     // 전체화면에서는 재생 컨트롤을 가리므로 띄우지 않는다
-    if (document.fullscreenElement) return;
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
 
     const el = document.createElement('div');
     el.id = 'nam-toast';
+    // 다른 도구(TV 리모컨의 D-pad 포커스 등)가 이 확장의 UI 를 알아보고 건너뛸 수 있게 표식을 둔다
+    el.dataset.namUi = 'toast';
     const msg = document.createElement('span');
     msg.textContent = info.channel ? `AI 음악을 건너뛰었습니다 · ${info.channel}` : 'AI 음악을 건너뛰었습니다';
     el.append(msg);
@@ -430,6 +432,7 @@
     if (old) return;
     const bar = document.createElement('div');
     bar.id = 'nam-banner';
+    bar.dataset.namUi = 'banner';
     bar.innerHTML = `<span>AI 음악으로 판별된 채널입니다.</span>
       <button id="nam-block">이 채널 차단</button><button id="nam-allow">허용</button>`;
     const anchor = document.querySelector('#below') || document.body;

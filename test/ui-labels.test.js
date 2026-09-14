@@ -129,3 +129,12 @@ test('후원 링크는 링크가 있을 때만, 팝업 안에서만 보인다', 
   // 콘텐츠 스크립트에는 후원 관련 코드가 없어야 한다
   assert.ok(!/donate|후원/i.test(read('src/content.js')), '유튜브 페이지에 후원이 노출된다');
 });
+
+test('확장이 끼워 넣는 UI 는 data-nam-ui 표식을 단다', () => {
+  // Couch Remote(TV 리모컨)의 유튜브 어댑터가 [data-nam-ui] 를 D-pad 포커스 후보에서 뺀다.
+  // 표식이 빠지면 리모컨 포커스가 토스트·배너 버튼으로 튄다 (2026-09-14 교차 점검).
+  const js = fs.readFileSync(path.join(__dirname, '..', 'src', 'content.js'), 'utf8');
+  assert.match(js, /el\.dataset\.namUi = 'toast'/, '토스트에 표식이 없다');
+  assert.match(js, /bar\.dataset\.namUi = 'banner'/, '배너에 표식이 없다');
+  assert.match(js, /webkitFullscreenElement/, 'Safari 전체화면(webkit) 검사가 없다');
+});
