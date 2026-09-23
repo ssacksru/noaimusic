@@ -6,14 +6,17 @@ const B = require('../src/badges.js');
 // 가짜 유튜브 응답으로 채널 단위 확인의 분기들을 검증한다.
 // 실측 배경(2026-08-21): 한 AI 채널이 최근 8개 중 4개에만 설명란 공시를 붙였다 —
 // 입구 영상 하나만 보고 '아님' 처리하면 절반 확률로 놓친다.
-function watchHtml({ disclosure = false, badge = false } = {}) {
+// 설명란 섹션은 도움말 문서 번호로 종류가 갈린다: 15447836 = AI 공시, 15569972 = 자동 더빙
+const howSection = (doc) => ({ howThisWasMadeSectionViewModel: { bodyText: { commandRuns: [{ onTap: {
+  innertubeCommand: { urlEndpoint: { url: `//support.google.com/youtube/answer/${doc}?hl=ko` } } } }] } } });
+function watchHtml({ disclosure = false, badge = false, dubbed = false } = {}) {
   const d = {
     contents: { twoColumnWatchNextResults: { results: { results: { contents: [
       { videoPrimaryInfoRenderer: { badges: badge ? [{ metadataBadgeRenderer:
         { icon: { iconType: 'INFO' }, style: 'BADGE_STYLE_TYPE_SIMPLE' } }] : [] } },
     ] } } } },
-    engagementPanels: disclosure ? [{ engagementPanelSectionListRenderer: { content: {
-      structuredDescriptionContentRenderer: { items: [{ howThisWasMadeSectionViewModel: {} }] },
+    engagementPanels: (disclosure || dubbed) ? [{ engagementPanelSectionListRenderer: { content: {
+      structuredDescriptionContentRenderer: { items: [howSection(disclosure ? '15447836' : '15569972')] },
     } } }] : [],
   };
   return 'var ytInitialData = ' + JSON.stringify(d) + ';</script>';
@@ -97,4 +100,15 @@ test('목록을 아예 못 얻으면 입구 영상 판정을 쓴다 (무한 재�
   ];
   const r = await B.checkChannel(CID, 'aaaaaaaaaaa', false, null);
   assert.equal(r.verdict, 'ok', '입구 판정으로 떨어져야 한다');
+});
+
+test('자동 더빙 안내만 있는 채널은 AI 가 아니다', async () => {
+  // 실사용 사고(2026-09-23): 자동 더빙 안내가 같은 섹션에 실려 일반 채널이 AI 로 학습됐다
+  responses = [
+    ['watch?v=aaaaaaaaaaa', watchHtml({ dubbed: true })],
+    ['feeds/videos.xml', rssXml(['bbbbbbbbbbb', 'ccccccccccc', 'ddddddddddd'])],
+    ['watch?v=', watchHtml({ dubbed: true })],
+  ];
+  assert.deepEqual(await B.checkChannel(CID, 'aaaaaaaaaaa', false, null),
+    { verdict: 'ok', reason: 'label' });
 });

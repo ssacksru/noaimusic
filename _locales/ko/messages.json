@@ -1,4 +1,158 @@
 {
-  "appName": { "message": "NoAI Music — AI 음악 플레이리스트 필터" },
-  "appDesc": { "message": "유튜브 추천·검색·자동재생에서 AI로 만든 음악 플레이리스트를 걸러냅니다. 일반 영상은 건드리지 않습니다." }
+  "appName": {
+    "message": "NoAI Music — AI 음악 플레이리스트 필터"
+  },
+  "appDesc": {
+    "message": "유튜브 추천·검색·자동재생에서 AI로 만든 음악 플레이리스트를 걸러냅니다. 일반 영상은 건드리지 않습니다."
+  },
+  "statPage": {
+    "message": "이 페이지"
+  },
+  "statToday": {
+    "message": "오늘"
+  },
+  "statTotal": {
+    "message": "누적"
+  },
+  "nowSub": {
+    "message": "지금 보는 채널 · 걸러지지 않음"
+  },
+  "nowBlock": {
+    "message": "차단"
+  },
+  "recentTitle": {
+    "message": "방금 걸러낸 항목"
+  },
+  "recentHint": {
+    "message": "{1}건 · 스크롤"
+  },
+  "recentEmpty": {
+    "message": "아직 걸러낸 항목이 없습니다."
+  },
+  "listsTitle": {
+    "message": "채널 관리"
+  },
+  "tabLearned": {
+    "message": "학습됨"
+  },
+  "tabBlocked": {
+    "message": "직접 차단"
+  },
+  "tabAllowed": {
+    "message": "허용"
+  },
+  "noteLearned": {
+    "message": "유튜브의 AI 표시를 보고 이 확장이 직접 알아낸 채널입니다."
+  },
+  "noteBlocked": {
+    "message": "내가 시청 페이지에서 직접 차단한 채널입니다."
+  },
+  "noteAllowed": {
+    "message": "오탐이라 되살린 채널 — 무슨 일이 있어도 표시됩니다."
+  },
+  "subLearned": {
+    "message": "유튜브 AI 표시로 학습됨"
+  },
+  "subBlocked": {
+    "message": "시청 페이지에서 차단함"
+  },
+  "subAllowed": {
+    "message": "항상 표시"
+  },
+  "subGuessed": {
+    "message": "정황으로 추정 (유튜브 표시 없음)"
+  },
+  "listEmpty": {
+    "message": "비어 있음"
+  },
+  "listMore": {
+    "message": "외 {1}개 더 있음"
+  },
+  "btnAllow": {
+    "message": "허용"
+  },
+  "btnRemove": {
+    "message": "해제"
+  },
+  "openHint": {
+    "message": "눌러서 보기 (차단은 유지됨)"
+  },
+  "unknownChannel": {
+    "message": "알 수 없음"
+  },
+  "untitled": {
+    "message": "(제목 없음)"
+  },
+  "reasonYoutubeLabel": {
+    "message": "유튜브가 AI로 표시"
+  },
+  "reasonSeed": {
+    "message": "알려진 AI 채널"
+  },
+  "reasonBlocklist": {
+    "message": "내가 차단한 채널"
+  },
+  "reasonKeyword": {
+    "message": "제목·채널명에 “{1}”"
+  },
+  "reasonMix": {
+    "message": "차단한 채널의 믹스 ({1})"
+  },
+  "reasonSkipped": {
+    "message": "{1} · 재생 중 건너뜀"
+  },
+  "agoNow": {
+    "message": "방금"
+  },
+  "agoMin": {
+    "message": "{1}분 전"
+  },
+  "agoHour": {
+    "message": "{1}시간 전"
+  },
+  "agoDay": {
+    "message": "{1}일 전"
+  },
+  "optAutoSkip": {
+    "message": "재생 중 AI로 판별되면 바로 다음 곡으로"
+  },
+  "optUseSeed": {
+    "message": "알려진 AI 채널 목록 사용"
+  },
+  "seedCount": {
+    "message": "({1}개)"
+  },
+  "optUseGuess": {
+    "message": "유튜브 표시가 없어도 정황으로 추정"
+  },
+  "optUseGuessHint": {
+    "message": "(가끔 틀릴 수 있음)"
+  },
+  "creditData": {
+    "message": "데이터: 유튜브 AI 공시 +"
+  },
+  "donateLine": {
+    "message": "이 확장이 마음에 드셨다면 ☕"
+  },
+  "donateKr": {
+    "message": "토스로 후원"
+  },
+  "toastSkipped": {
+    "message": "AI 음악을 건너뛰었습니다"
+  },
+  "toastSkippedFrom": {
+    "message": "AI 음악을 건너뛰었습니다 · {1}"
+  },
+  "toastUndo": {
+    "message": "되돌리기"
+  },
+  "bannerText": {
+    "message": "AI 음악으로 판별된 채널입니다."
+  },
+  "bannerBlock": {
+    "message": "이 채널 차단"
+  },
+  "bannerAllow": {
+    "message": "허용"
+  }
 }

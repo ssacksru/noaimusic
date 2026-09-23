@@ -2,6 +2,9 @@
 (function () {
   'use strict';
   const H = window.NAM_HEURISTICS;
+  // 페이지에 띄우는 문구도 _locales 에서 — 브라우저 언어를 따른다
+  // {1} 치환은 직접 한다 — Safari 의 getMessage 치환은 "($1)" 같은 자리에서 값을 앞 글자째 지운다(실측 2026-09-23)
+  const t = (key, sub) => chrome.i18n.getMessage(key).replace('{1}', () => String(sub));
   let enabled = true;
   let autoSkip = true;
   let useGuess = true;   // 유튜브 공시가 없을 때 해시태그 같은 추정 신호도 쓸지
@@ -140,15 +143,15 @@
     // 길이 배지: 같은 클래스에 "새 동영상" 같은 배지도 섞여 있어 시간 형태만 취한다
     let durationSec = 0;
     for (const b of el.querySelectorAll('.ytBadgeShapeText, ytd-thumbnail-overlay-time-status-renderer #text')) {
-      const t = (b.textContent || '').trim();
-      if (/^\d+(:\d{2})+$/.test(t)) { durationSec = H.parseDuration(t); break; }
+      const txt = (b.textContent || '').trim();
+      if (/^\d+(:\d{2})+$/.test(txt)) { durationSec = H.parseDuration(txt); break; }
     }
 
     // 조회수 — 검사 순서를 정하는 데 쓴다 (낮을수록 AI 일 확률이 높다)
     let views = null;
     for (const el2 of el.querySelectorAll('.ytContentMetadataViewModelMetadataRow span, #metadata-line span')) {
-      const t = (el2.textContent || '').trim();
-      if (/조회수|views|回視聴|vistas/i.test(t)) { views = H.parseViews(t); break; }
+      const txt = (el2.textContent || '').trim();
+      if (/조회수|views|回視聴|vistas/i.test(txt)) { views = H.parseViews(txt); break; }
     }
 
     // videoId — 통계 중복 제거 키. lockup 은 content-id-XXX 클래스에 실려 온다.
@@ -346,11 +349,11 @@
     // 다른 도구(TV 리모컨의 D-pad 포커스 등)가 이 확장의 UI 를 알아보고 건너뛸 수 있게 표식을 둔다
     el.dataset.namUi = 'toast';
     const msg = document.createElement('span');
-    msg.textContent = info.channel ? `AI 음악을 건너뛰었습니다 · ${info.channel}` : 'AI 음악을 건너뛰었습니다';
+    msg.textContent = info.channel ? t('toastSkippedFrom', info.channel) : t('toastSkipped');
     el.append(msg);
     if (info.channelId && info.v) {
       const undo = document.createElement('button');
-      undo.textContent = '되돌리기';
+      undo.textContent = t('toastUndo');
       undo.onclick = async () => {
         await window.NAM_LISTS.setChannel(info.channelId, info.channel, 'allowed');
         chrome.runtime.sendMessage({ type: 'NAM_MARK', channelId: info.channelId, verdict: 'ok', channel: info.channel }).catch(() => {});
@@ -433,8 +436,13 @@
     const bar = document.createElement('div');
     bar.id = 'nam-banner';
     bar.dataset.namUi = 'banner';
-    bar.innerHTML = `<span>AI 음악으로 판별된 채널입니다.</span>
-      <button id="nam-block">이 채널 차단</button><button id="nam-allow">허용</button>`;
+    const label = document.createElement('span');
+    label.textContent = t('bannerText');
+    const blockBtn = document.createElement('button');
+    blockBtn.id = 'nam-block'; blockBtn.textContent = t('bannerBlock');
+    const allowBtn = document.createElement('button');
+    allowBtn.id = 'nam-allow'; allowBtn.textContent = t('bannerAllow');
+    bar.append(label, blockBtn, allowBtn);
     const anchor = document.querySelector('#below') || document.body;
     anchor.prepend(bar);
     bar.querySelector('#nam-block').onclick = async () => {

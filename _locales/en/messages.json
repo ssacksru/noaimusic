@@ -4,5 +4,155 @@
   },
   "appDesc": {
     "message": "Filters AI-generated music playlists out of YouTube recommendations, search, and autoplay. Real videos stay."
+  },
+  "statPage": {
+    "message": "This page"
+  },
+  "statToday": {
+    "message": "Today"
+  },
+  "statTotal": {
+    "message": "All time"
+  },
+  "nowSub": {
+    "message": "Channel you’re watching · not filtered"
+  },
+  "nowBlock": {
+    "message": "Block"
+  },
+  "recentTitle": {
+    "message": "Recently filtered"
+  },
+  "recentHint": {
+    "message": "{1} items · scroll"
+  },
+  "recentEmpty": {
+    "message": "Nothing filtered yet."
+  },
+  "listsTitle": {
+    "message": "Channels"
+  },
+  "tabLearned": {
+    "message": "Learned"
+  },
+  "tabBlocked": {
+    "message": "Blocked"
+  },
+  "tabAllowed": {
+    "message": "Allowed"
+  },
+  "noteLearned": {
+    "message": "Channels this extension identified from YouTube’s AI label."
+  },
+  "noteBlocked": {
+    "message": "Channels you blocked yourself on a watch page."
+  },
+  "noteAllowed": {
+    "message": "Channels restored as false positives — always shown."
+  },
+  "subLearned": {
+    "message": "Learned from YouTube’s AI label"
+  },
+  "subBlocked": {
+    "message": "Blocked on a watch page"
+  },
+  "subAllowed": {
+    "message": "Always shown"
+  },
+  "subGuessed": {
+    "message": "Guessed from context (no YouTube label)"
+  },
+  "listEmpty": {
+    "message": "Empty"
+  },
+  "listMore": {
+    "message": "{1} more"
+  },
+  "btnAllow": {
+    "message": "Allow"
+  },
+  "btnRemove": {
+    "message": "Remove"
+  },
+  "openHint": {
+    "message": "Click to watch (stays blocked)"
+  },
+  "unknownChannel": {
+    "message": "Unknown"
+  },
+  "untitled": {
+    "message": "(untitled)"
+  },
+  "reasonYoutubeLabel": {
+    "message": "Labeled AI by YouTube"
+  },
+  "reasonSeed": {
+    "message": "Known AI channel"
+  },
+  "reasonBlocklist": {
+    "message": "Channel you blocked"
+  },
+  "reasonKeyword": {
+    "message": "“{1}” in title or channel name"
+  },
+  "reasonMix": {
+    "message": "Mix from a blocked channel ({1})"
+  },
+  "reasonSkipped": {
+    "message": "{1} · skipped during playback"
+  },
+  "agoNow": {
+    "message": "just now"
+  },
+  "agoMin": {
+    "message": "{1} min ago"
+  },
+  "agoHour": {
+    "message": "{1} hr ago"
+  },
+  "agoDay": {
+    "message": "{1} d ago"
+  },
+  "optAutoSkip": {
+    "message": "Skip to the next track when AI is detected during playback"
+  },
+  "optUseSeed": {
+    "message": "Use the known AI channel list"
+  },
+  "seedCount": {
+    "message": "({1})"
+  },
+  "optUseGuess": {
+    "message": "Guess from context without a YouTube label"
+  },
+  "optUseGuessHint": {
+    "message": "(may occasionally be wrong)"
+  },
+  "creditData": {
+    "message": "Data: YouTube AI disclosure +"
+  },
+  "donateLine": {
+    "message": "Enjoying this extension? ☕"
+  },
+  "donateKr": {
+    "message": "Support via Toss"
+  },
+  "toastSkipped": {
+    "message": "Skipped AI music"
+  },
+  "toastSkippedFrom": {
+    "message": "Skipped AI music · {1}"
+  },
+  "toastUndo": {
+    "message": "Undo"
+  },
+  "bannerText": {
+    "message": "This channel was identified as AI music."
+  },
+  "bannerBlock": {
+    "message": "Block this channel"
+  },
+  "bannerAllow": {
+    "message": "Allow"
   }
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko">
+<html>
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" href="popup.css">
@@ -17,45 +17,45 @@
   </header>
 
   <section class="stats">
-    <div class="stat"><b id="stat-page">0</b><span>이 페이지</span></div>
-    <div class="stat"><b id="stat-today">0</b><span>오늘</span></div>
-    <div class="stat"><b id="stat-total">0</b><span>누적</span></div>
+    <div class="stat"><b id="stat-page">0</b><span data-i18n="statPage"></span></div>
+    <div class="stat"><b id="stat-today">0</b><span data-i18n="statToday"></span></div>
+    <div class="stat"><b id="stat-total">0</b><span data-i18n="statTotal"></span></div>
   </section>
 
   <!-- 공시도 정황 신호도 없는 AI 채널은 결국 사람이 잡는다 — 그 한 번을 원클릭으로 -->
   <section class="list" id="now" style="display:none">
     <ul><li>
-      <div class="meta"><span class="t" id="now-name"></span><span class="c">지금 보는 채널 · 걸러지지 않음</span></div>
-      <button id="now-block">차단</button>
+      <div class="meta"><span class="t" id="now-name"></span><span class="c" data-i18n="nowSub"></span></div>
+      <button id="now-block" data-i18n="nowBlock"></button>
     </li></ul>
   </section>
 
   <section class="list">
-    <h2>방금 걸러낸 항목 <span class="hint" id="recent-hint"></span></h2>
+    <h2><span data-i18n="recentTitle"></span> <span class="hint" id="recent-hint"></span></h2>
     <ul id="recent"></ul>
-    <p class="empty" id="empty">아직 걸러낸 항목이 없습니다.</p>
+    <p class="empty" id="empty" data-i18n="recentEmpty"></p>
   </section>
 
   <section class="lists">
-    <h2>채널 관리</h2>
+    <h2 data-i18n="listsTitle"></h2>
     <div class="tabs">
-      <button class="tab active" data-tab="learned">학습됨 <span id="n-learned">0</span></button>
-      <button class="tab" data-tab="blocked">직접 차단 <span id="n-blocked">0</span></button>
-      <button class="tab" data-tab="allowed">허용 <span id="n-allowed">0</span></button>
+      <button class="tab active" data-tab="learned"><span data-i18n="tabLearned"></span> <span id="n-learned">0</span></button>
+      <button class="tab" data-tab="blocked"><span data-i18n="tabBlocked"></span> <span id="n-blocked">0</span></button>
+      <button class="tab" data-tab="allowed"><span data-i18n="tabAllowed"></span> <span id="n-allowed">0</span></button>
     </div>
     <p class="tabnote" id="tabnote"></p>
     <ul id="channels"></ul>
   </section>
 
   <footer>
-    <label class="seed"><input type="checkbox" id="autoSkip" checked> 재생 중 AI로 판별되면 바로 다음 곡으로</label>
-    <label class="seed"><input type="checkbox" id="useSeed" checked> 알려진 AI 채널 목록 사용 <span id="seed-count"></span></label>
-    <label class="seed"><input type="checkbox" id="useGuess" checked> 유튜브 표시가 없어도 정황으로 추정 <span class="hint">(가끔 틀릴 수 있음)</span></label>
-    <span class="credit">데이터: 유튜브 AI 공시 + <a href="https://souloverai.com" target="_blank" rel="noreferrer">Soul Over AI</a> (CC BY 4.0)</span>
-    <span class="credit" id="donate" style="display:none">이 확장이 마음에 드셨다면 ☕
+    <label class="seed"><input type="checkbox" id="autoSkip" checked> <span data-i18n="optAutoSkip"></span></label>
+    <label class="seed"><input type="checkbox" id="useSeed" checked> <span data-i18n="optUseSeed"></span> <span id="seed-count"></span></label>
+    <label class="seed"><input type="checkbox" id="useGuess" checked> <span data-i18n="optUseGuess"></span> <span class="hint" data-i18n="optUseGuessHint"></span></label>
+    <span class="credit"><span data-i18n="creditData"></span> <a href="https://souloverai.com" target="_blank" rel="noreferrer">Soul Over AI</a> (CC BY 4.0)</span>
+    <span class="credit" id="donate" style="display:none"><span data-i18n="donateLine"></span>
       <a id="donate-global" target="_blank" rel="noreferrer">GitHub Sponsors</a>
       <span id="donate-sep"> · </span>
-      <a id="donate-kr" target="_blank" rel="noreferrer">토스로 후원</a>
+      <a id="donate-kr" target="_blank" rel="noreferrer" data-i18n="donateKr"></a>
     </span>
   </footer>
 

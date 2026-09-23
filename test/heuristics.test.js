@@ -244,6 +244,32 @@ test('filterTree: 깨진 구조에도 예외 없이 동작', () => {
   assert.doesNotThrow(() => H.filterTree(weird, L));
 });
 
+// 실측 구조(2026-09-23)에서 바뀌는 부분만 남긴 "콘텐츠 생성 방식" 섹션
+function how(doc, header) {
+  return {
+    sectionTitle: { content: '콘텐츠 생성 방식' },
+    bodyHeader: { content: header },
+    bodyText: { content: '… 자세히 알아보기', commandRuns: [{ onTap: { innertubeCommand: {
+      urlEndpoint: { url: `//support.google.com/youtube/answer/${doc}?hl=ko`, target: 'TARGET_NEW_WINDOW' },
+    } } }] },
+  };
+}
+const panelWith = (h) => ({ engagementPanels: [{ engagementPanelSectionListRenderer: { content: {
+  structuredDescriptionContentRenderer: { items: [{ videoDescriptionHeaderRenderer: {} }, { howThisWasMadeSectionViewModel: h }] },
+} } }] });
+
+test('자동 더빙 안내는 AI 공시가 아니다', () => {
+  // 같은 "콘텐츠 생성 방식" 섹션에 자동 더빙 안내가 실린다 — 섹션 존재만 보고 AI 로 학습해
+  // 침착맨·황덕연 같은 일반 채널이 통째로 차단됐다(실사용 사고 2026-09-23)
+  assert.equal(H.hasAiDisclosure(panelWith(how('15569972', '자동 더빙'))), false);
+  assert.equal(H.hasAiDisclosure(panelWith(how('15569972', 'Auto-dubbed'))), false);
+  // 문구가 아니라 문서 번호로 가른다 — 영어 화면의 AI 공시도 잡힌다
+  assert.equal(H.hasAiDisclosure(panelWith(how('15447836', 'Altered or synthetic content'))), true);
+  // 모르는 번호·링크 없는 섹션은 AI 로 치지 않는다
+  assert.equal(H.hasAiDisclosure(panelWith(how('99999999', 'AI로 제작'))), false);
+  assert.equal(H.hasAiDisclosure(panelWith({ sectionTitle: { content: '콘텐츠 생성 방식' } })), false);
+});
+
 test('설명란 "콘텐츠 생성 방식" 공시를 감지한다', () => {
   // 제목 옆 배지 없이 설명란 공시만 있는 AI 영상이 실존한다 (2026-08-21 실사용 제보:
   // "Piano music for relaxing" — 콘텐츠 생성 방식 → AI로 제작)
@@ -252,7 +278,7 @@ test('설명란 "콘텐츠 생성 방식" 공시를 감지한다', () => {
       { engagementPanelSectionListRenderer: { content: {} } },
       { engagementPanelSectionListRenderer: { content: { structuredDescriptionContentRenderer: {
         items: [{ videoDescriptionHeaderRenderer: {} },
-                { howThisWasMadeSectionViewModel: { sectionTitle: { content: '콘텐츠 생성 방식' } } }],
+                { howThisWasMadeSectionViewModel: how('15447836', 'AI로 제작') }],
       } } } },
     ],
   };

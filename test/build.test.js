@@ -166,7 +166,8 @@ test('추정 신호는 유튜브 공시와 구분되고 끌 수 있다', () => {
 
   const html = read('popup/popup.html');
   assert.match(html, /id="useGuess"/, '팝업에 추정 끄기 옵션이 없다');
-  assert.match(read('popup/popup.js'), /정황으로 추정/, '추정으로 잡은 채널을 표시하지 않는다');
+  assert.match(read('popup/popup.js'), /t\('subGuessed'\)/, '추정으로 잡은 채널을 표시하지 않는다');
+  assert.match(read('_locales/ko/messages.json'), /정황으로 추정/, '추정 표시 문구가 없다');
 });
 
 test('학습 순서를 조회수로 정한다', () => {
@@ -290,4 +291,16 @@ test('수집기도 시청 페이지에 쿠키를 실어 보낸다', () => {
   assert.ok(watchFetch, '시청 페이지 요청을 찾지 못했다');
   assert.ok(!/credentials/.test(watchFetch[0]), "시청 페이지에 credentials 옵션을 붙이면 안 된다");
   assert.match(h, /howThisWasMadeSectionViewModel/, '설명란 공시를 보지 않는다 — 확장과 기준이 어긋난다');
+});
+
+test('자동 더빙 오탐으로 배운 채널을 업데이트 때 한 번 다시 확인한다', () => {
+  // ~0.1.4 가 자동 더빙 안내를 AI 공시로 읽어 일반 채널을 학습했다(2026-09-23 실사용 사고)
+  const b = read('src/background.js');
+  assert.match(b, /await relearnAfterDubbingFix\(\)/, '업데이트 경로에서 재학습을 부르지 않는다');
+  assert.match(b, /relearnedAfterDubbing/, '한 번만 돌게 하는 표식이 없다 — 매 업데이트마다 학습이 날아간다');
+  assert.match(b, /profileWhy\[id\] !== 'hashtags'/, '공시와 무관한 정황 추정까지 지운다');
+  const fn = b.slice(b.indexOf('async function relearnAfterDubbingFix'), b.indexOf('const tabCounts'));
+  const writes = [...fn.matchAll(/storage\.local\.set\(\{([^}]*)\}/g)].map((m) => m[1]).join(' ');
+  assert.ok(writes.includes('profiles'), '저장 호출을 못 찾았다 — 정규식 확인');
+  assert.ok(!/\bblocked\b|\ballowed\b/.test(writes) && !/NAM_LISTS/.test(fn), '사용자의 직접 차단·허용 목록을 건드린다');
 });

@@ -17,6 +17,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
       for (const id in profiles) if (profiles[id] === 'ai') kept[id] = profiles[id];
       await chrome.storage.local.set({ profiles: kept });
     } catch (e) { /* 실패해도 동작엔 지장 없음 — 다음 업데이트 때 다시 */ }
+    await relearnAfterDubbingFix();
   }
   if (details.reason !== 'install') return;
   try {
@@ -26,6 +27,32 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     }
   } catch (e) { /* 조회 실패해도 설치는 계속 */ }
 });
+
+// 자동 더빙 안내를 AI 공시로 오인하던 버전(~0.1.4)이 학습한 'ai' 판정을 한 번 비운다.
+// (실사용 사고 2026-09-23: 침착맨·황덕연 같은 일반 채널이 학습돼 통째로 차단됨)
+// 공시·배지로 배운 것은 진짜와 가짜를 저장값만으로 가를 수 없으니 전부 다시 확인하게 하고,
+// 공시와 무관한 정황 추정(hashtags)만 남긴다. 사용자가 직접 차단·허용한 목록은 건드리지 않는다.
+// 진짜 AI 채널은 피드에 다시 뜨는 대로 고친 판별로 재학습된다.
+async function relearnAfterDubbingFix() {
+  try {
+    const st = await chrome.storage.local.get({ profiles: {}, profileWhy: {}, profileNames: {}, recent: [], blocked: {}, relearnedAfterDubbing: false });
+    if (st.relearnedAfterDubbing) return;
+    for (const id in st.profiles) {
+      if (st.profiles[id] === 'ai' && st.profileWhy[id] !== 'hashtags') {
+        delete st.profiles[id]; delete st.profileWhy[id];
+      }
+    }
+    // 팝업의 "방금 걸러낸 항목"에 오탐 기록이 남아 "내가 차단한 채널"로 보이지 않게 한다.
+    // 차단 근거(학습·직접 차단)가 더는 없는 '차단 목록' 기록을 지운다. 피드 카드에서 온 기록은
+    // 채널 ID 없이 이름만 있는 경우가 있어 이름으로도 맞춘다(실측 2026-09-23).
+    const ids = new Set(Object.keys(st.blocked));
+    for (const id in st.profiles) if (st.profiles[id] === 'ai') ids.add(id);
+    const names = new Set([...ids].map((id) => st.blocked[id] || st.profileNames[id]).filter(Boolean));
+    const recent = st.recent.filter((r) => r.reason !== 'blocklist'
+      || (r.channelId ? ids.has(r.channelId) : names.has(r.channel)));
+    await chrome.storage.local.set({ profiles: st.profiles, profileWhy: st.profileWhy, recent, relearnedAfterDubbing: true });
+  } catch (e) { /* 실패하면 다음 업데이트 때 다시 */ }
+}
 
 const tabCounts = {};          // tabId -> { url, seen: Set(videoId) }
 const RECENT_CAP = 50;

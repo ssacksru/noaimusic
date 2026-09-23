@@ -1,7 +1,7 @@
 'use strict';
-// 판별 사유는 내부 코드다. 화면에는 반드시 한국어로 번역되어 나가야 한다.
+// 판별 사유는 내부 코드다. 화면에는 반드시 _locales 번역을 거쳐 나가야 한다.
 // 새 사유를 추가하고 라벨을 빼먹으면 여기서 잡힌다.
-const { test } = require('node:test');
+const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -25,13 +25,13 @@ test('휴리스틱이 만드는 사유가 하나도 빠짐없이 존재한다', 
   }
 });
 
-test('화면에 노출되는 사유는 전부 한국어 라벨이 있다', () => {
+test('화면에 노출되는 사유는 전부 번역 라벨이 있다', () => {
   const popup = read('popup/popup.js');
   // 차단으로 이어져 목록에 찍히는 사유만 화면에 나온다
   const shown = ['youtube-ai-label', 'seed', 'blocklist'];
   for (const reason of shown) {
-    const re = new RegExp(`base === '${reason}'\\)\\s*text = '[^']*[가-힣][^']*'`);
-    assert.match(popup, re, `${reason} 의 한국어 라벨이 없다`);
+    const re = new RegExp(`base === '${reason}'\\)\\s*text = t\\('\\w+'\\)`);
+    assert.match(popup, re, `${reason} 의 번역 라벨이 없다`);
   }
   assert.match(popup, /base\.startsWith\('keyword:'\)/, 'keyword: 접두 사유 처리가 없다');
   assert.match(popup, /startsWith\('skipped:'\)/, 'skipped: 접두 사유 처리가 없다');
@@ -59,8 +59,8 @@ test('건너뛴 뒤 알림(토스트)이 갖춰져 있다', () => {
   const js = read('src/content.js');
   const css = read('src/content.css');
   assert.match(js, /nam-toast/, '토스트를 만드는 코드가 없다');
-  assert.match(js, /건너뛰었습니다/, '토스트 문구가 한국어가 아니다');
-  assert.match(js, /되돌리기/, '되돌리기 버튼이 없다');
+  assert.match(js, /t\('toastSkipped'\)/, '토스트 문구가 번역을 거치지 않는다');
+  assert.match(js, /t\('toastUndo'\)/, '되돌리기 버튼이 없다');
   assert.match(js, /document\.fullscreenElement/, '전체화면에서 토스트를 막는 처리가 없다');
   // 떠나는 페이지에서 소비하지 않도록 하는 가드 (없으면 토스트가 보이지 않는다)
   assert.match(js, /info\.v === new URLSearchParams/, '도착 페이지 판별 가드가 없다');
@@ -111,7 +111,8 @@ test('걸러낸 항목을 눌러 볼 수 있고, 그때는 건너뛰지 않는�
   const pj = read('popup/popup.js');
   assert.match(pj, /openWithPass/, '팝업에 눌러서 보기가 없다');
   assert.match(pj, /viewPass/, '통행증을 발급하지 않는다');
-  assert.match(pj, /차단은 유지됨/, '차단이 유지된다는 안내가 없다');
+  assert.match(pj, /t\('openHint'\)/, '차단이 유지된다는 안내가 없다');
+  assert.match(read('_locales/ko/messages.json'), /차단은 유지됨/, '안내 문구가 바뀌었다');
   const c = read('src/content.js');
   assert.match(c, /function passActive/, '통행증 확인이 없다');
   assert.match(c, /!passActive\(curV, meta\.channelId\)/, '통행증이 건너뛰기를 막지 않는다');
@@ -137,4 +138,53 @@ test('확장이 끼워 넣는 UI 는 data-nam-ui 표식을 단다', () => {
   assert.match(js, /el\.dataset\.namUi = 'toast'/, '토스트에 표식이 없다');
   assert.match(js, /bar\.dataset\.namUi = 'banner'/, '배너에 표식이 없다');
   assert.match(js, /webkitFullscreenElement/, 'Safari 전체화면(webkit) 검사가 없다');
+});
+
+// Mac App Store 거절(가이드라인 4, 2026-09-22): 영어 환경 심사기에서 팝업이 한국어로 떴다.
+// 화면 문구는 전부 _locales 를 거쳐야 하고, 두 언어의 키가 어긋나면 안 된다.
+describe('다국어', () => {
+  const en = JSON.parse(read('_locales/en/messages.json'));
+  const ko = JSON.parse(read('_locales/ko/messages.json'));
+  const hangul = /[\uAC00-\uD7A3]/;
+  const stripComments = (src) => src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '').replace(/<!--[\s\S]*?-->/g, '');
+
+  test('en·ko 가 같은 키를 가진다', () => {
+    assert.deepStrictEqual(Object.keys(en).sort(), Object.keys(ko).sort());
+  });
+
+  test('영어 문구에 한국어가 섞이지 않았다', () => {
+    for (const [k, v] of Object.entries(en)) assert.ok(!hangul.test(v.message), `en.${k} 에 한국어가 있다`);
+  });
+
+  test('코드가 부르는 키가 전부 있다', () => {
+    const html = read('popup/popup.html');
+    const js = read('popup/popup.js') + read('src/content.js');
+    const keys = [...html.matchAll(/data-i18n="(\w+)"/g), ...js.matchAll(/\bt\('(\w+)'/g)].map((m) => m[1]);
+    assert.ok(keys.length >= 40, `찾은 키가 너무 적다(${keys.length}) — 정규식 확인`);
+    for (const k of keys) assert.ok(en[k] && ko[k], `번역 키 ${k} 가 없다`);
+  });
+
+  test('치환 자리는 {1} 로 쓰고, 두 언어가 같이 가진다', () => {
+    // 브라우저 치환($1·placeholders)은 Safari 에서 앞 글자째 값이 지워진다(2026-09-23 실측) — 쓰지 않는다
+    for (const k of Object.keys(en)) {
+      for (const msgs of [en, ko]) {
+        assert.ok(!/\$/.test(msgs[k].message) && !msgs[k].placeholders, `${k} 가 브라우저 치환을 쓴다`);
+      }
+      assert.strictEqual(en[k].message.includes('{1}'), ko[k].message.includes('{1}'), `${k} 의 {1} 자리가 언어마다 다르다`);
+    }
+  });
+
+  test('팝업 안에서 번역 함수 t 를 가리는 지역 변수가 없다', () => {
+    // row() 의 const t = span 이 t() 를 가려 목록 그리기가 통째로 죽은 적이 있다(2026-09-23)
+    assert.ok(!/\b(const|let|var)\s+t\s*=(?!\s*\(key)/.test(read('popup/popup.js') + read('src/content.js')), 't 를 다른 값으로 가린다');
+  });
+
+  test('팝업·페이지 UI 에 한국어를 직접 쓰지 않는다', () => {
+    for (const f of ['popup/popup.html', 'popup/popup.js']) {
+      assert.ok(!hangul.test(stripComments(read(f))), `${f} 에 번역을 거치지 않은 한국어가 있다`);
+    }
+    // content.js 는 유튜브 한국어 화면을 읽는 정규식(조회수·인증)이 있어 문구 대입만 본다
+    const c = stripComments(read('src/content.js'));
+    assert.ok(!/(textContent|innerHTML|innerText)\s*=[^;]*[\uAC00-\uD7A3]/.test(c), 'content.js 가 한국어 문구를 직접 넣는다');
+  });
 });

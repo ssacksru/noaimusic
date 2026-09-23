@@ -393,14 +393,27 @@
 
   // 유튜브 AI 공시는 두 자리에 실린다: ① 제목 옆 배지 ② 설명란 "콘텐츠 생성 방식" 섹션.
   // ②는 배지 없이 이것만 있는 영상이 실존한다(실사용 제보 2026-08-21).
-  // 렌더러 이름 자체가 로케일 무관 신호다 — AI 영상에만 섹션이 존재하고
-  // 정상 영상엔 아예 없다(실측 2026-08-21: AI 1 vs 정상 2 교차 확인).
+  //
+  // 섹션이 있다고 AI 가 아니다. 유튜브가 **자동 더빙** 안내도 같은 섹션에 싣기 시작했다
+  // (실사용 사고 2026-09-23: 침착맨·황덕연 등 일반 채널이 전부 AI 로 학습돼 차단됨 —
+  // "일부 언어의 오디오 트랙이 자동으로 생성되었습니다"). 문구는 로케일마다 다르니
+  // 섹션이 가리키는 도움말 문서 번호로 가른다(로케일 무관, 실측 2026-09-23):
+  //   15447836 = 변경·합성 콘텐츠("AI로 제작")  ← AI
+  //   15569972 = 자동 더빙                      ← AI 아님
+  // 모르는 번호는 AI 로 치지 않는다 — 여기서 틀리면 멀쩡한 채널이 통째로 사라진다.
+  // 배지(①)와 정황 추정이 남아 있으니 놓치는 쪽이 훨씬 싸다.
+  const AI_DISCLOSURE_DOCS = ['15447836'];
   function hasAiDisclosure(data) {
     try {
       for (const p of data.engagementPanels || []) {
         const items = (((p.engagementPanelSectionListRenderer || {}).content || {})
           .structuredDescriptionContentRenderer || {}).items || [];
-        for (const it of items) if (it && it.howThisWasMadeSectionViewModel) return true;
+        for (const it of items) {
+          const how = it && it.howThisWasMadeSectionViewModel;
+          if (!how) continue;
+          const urls = JSON.stringify(how).match(/answer\/\d+/g) || [];
+          if (urls.some((u) => AI_DISCLOSURE_DOCS.includes(u.slice(7)))) return true;
+        }
       }
     } catch (e) { /* 데이터 형태가 바뀌면 "없음"으로 — 다른 판별 층이 남아 있다 */ }
     return false;
